@@ -27,7 +27,7 @@ namespace report_activity_analysis;
 class handler {
 
     public static function handle($event) {
-        echo "<h1><b>AHAHAH</b></h1>";
+        echo "";
     }
 
 }

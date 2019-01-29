@@ -24,9 +24,11 @@
 
 namespace report_activity_analysis\eventhandling;
 
-class register_events {
+class register_events
+{
 
-    public static function get_event_observers() {
+    public static function get_event_observers()
+    {
         $observers = [];
 
         $pluginman = \core_plugin_manager::instance();
@@ -35,10 +37,10 @@ class register_events {
                 $name = $plugin->type . "_" . $plugin->name;
                 switch ($name) {
                     case "mod_resource":
+                    case "mod_chat":
                         $observers[] = array(
-                                //"event" => "\\$name\\event\\course_module_viewed",
-                                "event" => "\\mod_resource\\event\\course_module_viewed",
-                                "callback" => '\\report_activity_analysis\\handler::handle'
+                            "eventname" => "\\$name\\event\\course_module_viewed",
+                            "callback" => "\\report_activity_analysis\\handler::handle"
                         );
                         break;
                 }
