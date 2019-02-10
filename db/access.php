@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details.
+ * lib
  *
  * @package    report
  * @subpackage activity_analysis
@@ -25,6 +25,26 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2019021001;       // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2018112800;       // Requires this Moodle version
-$plugin->component = 'report_activity_analysis'; // Full name of the plugin (used for diagnostics)
+$capabilities = array(
+    'report/activity_analysis:viewreport' => array(
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        )
+    ),
+
+    'report/activity_analysis:edit' => array(
+        'riskbitmask' => RISK_DATALOSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        )
+    )
+);

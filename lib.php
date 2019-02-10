@@ -15,19 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * lib
  *
- *
- * @package    report_activity_analysis
- * @copyright  2019 Justus Dieckmann <justusdieckmann@wwu.de>
+ * @package    report
+ * @subpackage activity_analysis
+ * @copyright  Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace report_activity_analysis;
+defined('MOODLE_INTERNAL') || die;
 
-class handler {
-
-    public static function handle($event) {
-        echo "";
+function report_activity_analysis_extend_navigation_course(navigation_node $navigation, stdClass $course, context_course $context) {
+    if (has_capability('report/activity_analysis:viewreport', $context)) {
+        $url = new moodle_url('/report/activity_analysis/index.php', array('id'=>$course->id));
+        $navigation->add(get_string('pluginname', 'report_activity_analysis'), $url, navigation_node::TYPE_SETTING, null, null, new pix_icon('i/report', ''));
     }
-
 }

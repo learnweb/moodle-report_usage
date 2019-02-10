@@ -15,16 +15,30 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details.
  *
- * @package    report
- * @subpackage activity_analysis
- * @copyright  Justus Dieckmann <justusdieckmann@wwu.de>
+ *
+ * @package    report_activity_analysis
+ * @copyright  2019 Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
+namespace report_activity_analysis;
 
-$plugin->version   = 2019021001;       // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2018112800;       // Requires this Moodle version
-$plugin->component = 'report_activity_analysis'; // Full name of the plugin (used for diagnostics)
+class handler
+{
+
+    public static function handle($event)
+    {
+        global $DB;
+        $data = $event->get_data();
+        //if($DB->record_exists('report_activity_ana_courses', array('courseid' => $data['courseid'])))
+        $record = new \stdClass();
+        $record->userid = $data['userid'];
+        $record->courseid = $data['courseid'];
+        $record->objecttable = $data['objecttable'];
+        $record->time = $data['timecreated'];
+        $record->objectid = $data['objectid'];
+        $DB->insert_record('report_activity_ana_events', $record);
+    }
+
+}

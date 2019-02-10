@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details.
+ * A page to display an analysis of activity by users
  *
  * @package    report
  * @subpackage activity_analysis
@@ -23,8 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
+require_once("../../config.php");
+require_once("lib.php");
 
-$plugin->version   = 2019021001;       // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2018112800;       // Requires this Moodle version
-$plugin->component = 'report_activity_analysis'; // Full name of the plugin (used for diagnostics)
+echo "This is the morning report";
