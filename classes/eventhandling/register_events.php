@@ -24,6 +24,8 @@
 
 namespace report_activity_analysis\eventhandling;
 
+defined('MOODLE_INTERNAL') || die();
+
 class register_events
 {
 
@@ -40,7 +42,7 @@ class register_events
                     case "mod_chat":
                         $observers[] = array(
                             "eventname" => "\\$name\\event\\course_module_viewed",
-                            "callback" => "\\report_activity_analysis\\handler::handle"
+                            "callback" => "\\report_activity_analysis\\eventhandling\\handler::handle"
                         );
                         break;
                 }

@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 $capabilities = array(
-    'report/activity_analysis:viewreport' => array(
+    'report/activity_analysis:view' => array(
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,

@@ -15,14 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *
+ *  Activity analysis event handler
  *
  * @package    report_activity_analysis
  * @copyright  2019 Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace report_activity_analysis;
+namespace report_activity_analysis\eventhandling;
+
+defined('MOODLE_INTERNAL') || die();
 
 class handler
 {
