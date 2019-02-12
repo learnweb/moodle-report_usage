@@ -17,12 +17,12 @@
 /**
  *
  *
- * @package    report_activity_analysis
+ * @package    report_usage
  * @copyright  2019 Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace report_activity_analysis\eventhandling;
+namespace report_usage\eventhandling;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -42,7 +42,7 @@ class register_events
                     case "mod_chat":
                         $observers[] = array(
                             "eventname" => "\\$name\\event\\course_module_viewed",
-                            "callback" => "\\report_activity_analysis\\eventhandling\\handler::handle"
+                            "callback" => "\\report_usage\\eventhandling\\handler::handle"
                         );
                         break;
                 }

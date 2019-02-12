@@ -17,7 +17,7 @@
 /**
  * Add event handlers for the assign
  *
- * @package    report_activity_analysis
+ * @package    report_usage
  * @category   event
  * @copyright  2019 Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -25,4 +25,4 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$observers = \report_activity_analysis\eventhandling\register_events::get_event_observers();
+$observers = \report_usage\eventhandling\register_events::get_event_observers();

@@ -18,7 +18,7 @@
  * lib
  *
  * @package    report
- * @subpackage activity_analysis
+ * @subpackage usage
  * @copyright  Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 $capabilities = array(
-    'report/activity_analysis:view' => array(
+    'report/usage:view' => array(
         'riskbitmask' => RISK_PERSONAL,
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
@@ -37,7 +37,7 @@ $capabilities = array(
         )
     ),
 
-    'report/activity_analysis:edit' => array(
+    'report/usage:edit' => array(
         'riskbitmask' => RISK_DATALOSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,

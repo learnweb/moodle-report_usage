@@ -18,7 +18,7 @@
  * Version details.
  *
  * @package    report
- * @subpackage activity_analysis
+ * @subpackage usage
  * @copyright  Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,4 +27,4 @@ defined('MOODLE_INTERNAL') || die;
 
 $plugin->version   = 2019021003;       // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2018112800;       // Requires this Moodle version
-$plugin->component = 'report_activity_analysis'; // Full name of the plugin (used for diagnostics)
+$plugin->component = 'report_usage'; // Full name of the plugin (used for diagnostics)

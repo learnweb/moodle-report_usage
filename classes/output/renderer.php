@@ -17,12 +17,12 @@
 /**
  * Activity analysis renderer
  *
- * @package    report_activity_analysis
+ * @package    report_usage
  * @copyright  2019 Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace report_activity_analysis\output;
+namespace report_usage\output;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -32,12 +32,23 @@ class renderer extends \plugin_renderer_base
     /**
      * Render activity analysis report page
      *
-     * @param report_activity_analysis_renderable $renderable the element to render
+     * @param report_usage_renderable $renderable the element to render
      */
-    protected function render_report_activity_analysis(report_activity_analysis_renderable $renderable) {
+    protected function render_report_usage(report_usage_renderable $renderable) {
         global $DB;
+        echo \html_writer::start_tag("table");
 
-        var_dump($renderable);
+        foreach ($renderable->data as $k => $v) {
+            $context = \context::instance_by_id($v->id, IGNORE_MISSING);
+
+            echo \html_writer::start_tag("tr");
+            echo \html_writer::tag("td", $v->id);
+            echo \html_writer::tag("td", $context->get_context_name(true));
+            echo \html_writer::tag("td", $v->amount);
+            echo \html_writer::end_tag("tr");
+        }
+
+        echo \html_writer::end_tag("table");
     }
 
 }

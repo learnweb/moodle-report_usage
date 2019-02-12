@@ -18,7 +18,7 @@
  * A page to display an analysis of activity by users
  *
  * @package    report
- * @subpackage activity_analysis
+ * @subpackage usage
  * @copyright  Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,24 +26,25 @@
 require_once("../../config.php");
 require_once("lib.php");
 $id = required_param('id', PARAM_INT); // Course ID.
-$PAGE->set_url('/report/activity_analysis/index.php', array('id' => $id));
+$PAGE->set_url('/report/usage/index.php', array('id' => $id));
 $PAGE->set_pagelayout('report');
 
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 require_login($course);
 $context = context_course::instance($course->id);
 
-require_capability('report/activity_analysis:view', $context);
+require_capability('report/usage:view', $context);
 
-$PAGE->set_title($course->shortname .': ' . get_string('pluginname', 'report_activity_analysis'));
+$PAGE->set_title($course->shortname .': ' . get_string('pluginname', 'report_usage'));
 $PAGE->set_heading($course->fullname);
 
-$records = $DB->get_records_sql_menu('SELECT (objectid, objecttable), COUNT(*) FROM mdl_report_activity_ana_events WHERE courseid = ? GROUP BY objectid, objecttable', array($id));
+$records = $DB->get_records_sql("SELECT contextid AS id, COUNT(*) AS amount FROM {report_usage_events} WHERE courseid = ? GROUP BY contextid", array($id));
+//$records = $DB->get_records_sql_menu('SELECT (objectid, objecttable), COUNT(*) FROM mdl_report_usage_events WHERE courseid = ? GROUP BY objectid, objecttable', array($id));
 
-$output = $PAGE->get_renderer('report_activity_analysis');
+$output = $PAGE->get_renderer('report_usage');
 echo $output->header();
-echo $output->heading($course->fullname .': ' . get_string('pluginname', 'report_activity_analysis'));
-$renderable = new \report_activity_analysis\output\report_activity_analysis_renderable($records);
+echo $output->heading($course->fullname .': ' . get_string('pluginname', 'report_usage'));
+$renderable = new \report_usage\output\report_usage_renderable($records);
 
 echo $output->render($renderable);
 

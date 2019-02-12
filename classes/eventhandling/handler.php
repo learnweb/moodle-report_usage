@@ -17,12 +17,12 @@
 /**
  *  Activity analysis event handler
  *
- * @package    report_activity_analysis
+ * @package    report_usage
  * @copyright  2019 Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace report_activity_analysis\eventhandling;
+namespace report_usage\eventhandling;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -33,14 +33,15 @@ class handler
     {
         global $DB;
         $data = $event->get_data();
-        //if($DB->record_exists('report_activity_ana_courses', array('courseid' => $data['courseid'])))
+        //if($DB->record_exists('report_usage_courses', array('courseid' => $data['courseid'])))
         $record = new \stdClass();
         $record->userid = $data['userid'];
         $record->courseid = $data['courseid'];
+        $record->contextid = $data['contextid'];
         $record->objecttable = $data['objecttable'];
         $record->time = $data['timecreated'];
         $record->objectid = $data['objectid'];
-        $DB->insert_record('report_activity_ana_events', $record);
+        $DB->insert_record('report_usage_events', $record);
     }
 
 }

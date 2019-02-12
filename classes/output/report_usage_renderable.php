@@ -17,19 +17,19 @@
 /**
  * Activity analysis rendererable
  *
- * @package    report_activity_analysis
+ * @package    report_usage
  * @copyright  2019 Justus Dieckmann <justusdieckmann@wwu.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace report_activity_analysis\output;
+namespace report_usage\output;
 
 defined('MOODLE_INTERNAL') || die();
 
-class report_activity_analysis_renderable implements \renderable
+class report_usage_renderable implements \renderable
 {
 
-    private $data;
+    public $data;
 
     public function __construct($data)
     {
