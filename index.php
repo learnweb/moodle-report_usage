@@ -39,7 +39,6 @@ $PAGE->set_title($course->shortname .': ' . get_string('pluginname', 'report_usa
 $PAGE->set_heading($course->fullname);
 
 $records = $DB->get_records_sql("SELECT contextid AS id, COUNT(*) AS amount FROM {report_usage_events} WHERE courseid = ? GROUP BY contextid", array($id));
-//$records = $DB->get_records_sql_menu('SELECT (objectid, objecttable), COUNT(*) FROM mdl_report_usage_events WHERE courseid = ? GROUP BY objectid, objecttable', array($id));
 
 $output = $PAGE->get_renderer('report_usage');
 echo $output->header();

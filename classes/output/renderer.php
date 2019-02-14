@@ -43,7 +43,7 @@ class renderer extends \plugin_renderer_base
 
             echo \html_writer::start_tag("tr");
             echo \html_writer::tag("td", $v->id);
-            echo \html_writer::tag("td", $context->get_context_name(true));
+            echo \html_writer::tag("td", $context->get_context_name(false));
             echo \html_writer::tag("td", $v->amount);
             echo \html_writer::end_tag("tr");
         }
