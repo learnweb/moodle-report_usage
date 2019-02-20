@@ -17,14 +17,14 @@
 /**
  * A page to display an analysis of activity by users
  *
- * @package    report
- * @subpackage usage
- * @copyright  Justus Dieckmann <justusdieckmann@wwu.de>
+ * @package    report_usage
+ * @copyright  Justus Dieckmann
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once("../../config.php");
 require_once("lib.php");
+
 $id = required_param('id', PARAM_INT); // Course ID.
 $days = optional_param('days', 30, PARAM_INT);
 
@@ -46,11 +46,14 @@ require_capability('report/usage:view', $context);
 $PAGE->set_title($course->shortname . ': ' . get_string('pluginname', 'report_usage'));
 $PAGE->set_heading($course->fullname);
 
-$output = $PAGE->get_renderer('report_usage');
-echo $output->header();
-echo $output->heading($course->fullname . ': ' . get_string('pluginname', 'report_usage'));
+echo $OUTPUT->header();
+echo $OUTPUT->heading($course->fullname . ': ' . get_string('pluginname', 'report_usage'));
 
-$renderable = new \report_usage\output\report_usage_renderable($days, $id);
-echo $output->render($renderable);
+$table = new \report_usage\table\report_usage_table($id, $days);
+$table->define_baseurl($baseurl);
+$table->setup();
+$table->addFunkyData();
 
-echo $output->footer();
+$table->print_html();
+
+echo $OUTPUT->footer();

@@ -26,8 +26,7 @@ namespace report_usage\output;
 
 defined('MOODLE_INTERNAL') || die();
 
-class renderer extends \plugin_renderer_base
-{
+class renderer extends \plugin_renderer_base {
 
     /**
      * Render activity analysis report page
@@ -36,19 +35,51 @@ class renderer extends \plugin_renderer_base
      */
     protected function render_report_usage(report_usage_renderable $renderable) {
         global $DB;
-        echo \html_writer::start_tag("table");
+        $days = $renderable->days;
 
-        foreach ($renderable->data as $k => $v) {
-            $context = \context::instance_by_id($v->id, IGNORE_MISSING);
+        $dt = new \DateTime($days . "days ago");
 
-            echo \html_writer::start_tag("tr");
-            echo \html_writer::tag("td", $v->id);
-            echo \html_writer::tag("td", $context->get_context_name(false));
-            echo \html_writer::tag("td", $v->amount);
-            echo \html_writer::end_tag("tr");
+        echo \html_writer::start_tag("table", array('class' => 'table table-sm table-hover'));
+        echo \html_writer::start_tag('thead');
+        echo \html_writer::start_tag("tr");
+
+
+        echo \html_writer::tag("th", get_string('file', 'report_usage'));
+        for ($i = 0; $i < $days; $i++) {
+            $dt->add(new \DateInterval("P1D"));
+            echo \html_writer::tag("th", $dt->format("d.m"));
+
         }
 
+        echo \html_writer::end_tag("tr");
+        echo \html_writer::end_tag('thead');
+        echo \html_writer::start_tag('tbody');
+        list($data, $max) = $renderable->getData();
+        foreach ($data as $k => $v) {
+            $context = \context::instance_by_id($k, IGNORE_MISSING);
+            echo \html_writer::start_tag("tr");
+            echo \html_writer::tag("td", $context->get_context_name(false));
+            for ($i = 0; $i < $days; $i++) {
+                $amount = isset($v[$i]) ? $v[$i]->amount : 0;
+                $percentage = $amount / $max;
+                echo \html_writer::tag("td", $amount,
+                        array('style' => 'background-color:' . $this->get_color_by_percentage($percentage)));
+            }
+            echo \html_writer::end_tag("tr");
+        }
+        echo \html_writer::end_tag("tbody");
         echo \html_writer::end_tag("table");
+    }
+
+    protected function get_color_by_percentage($per) {
+        $r = 255;
+        $g = $b = 255 - intval($per * 215);
+
+        $str = "#";
+        $str .= str_pad(dechex($r), 2, "0", STR_PAD_LEFT);
+        $str .= str_pad(dechex($g), 2, "0", STR_PAD_LEFT);
+        $str .= str_pad(dechex($b), 2, "0", STR_PAD_LEFT);
+        return $str;
     }
 
 }

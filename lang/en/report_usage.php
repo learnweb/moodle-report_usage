@@ -15,3 +15,4 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $string['pluginname'] = 'Activity analysis';
+$string['file'] = 'File';
