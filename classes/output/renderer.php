@@ -34,7 +34,6 @@ class renderer extends \plugin_renderer_base {
      * @param report_usage_renderable $renderable the element to render
      */
     protected function render_report_usage(report_usage_renderable $renderable) {
-        global $DB;
         $days = $renderable->days;
 
         $dt = new \DateTime($days . "days ago");
@@ -43,18 +42,16 @@ class renderer extends \plugin_renderer_base {
         echo \html_writer::start_tag('thead');
         echo \html_writer::start_tag("tr");
 
-
         echo \html_writer::tag("th", get_string('file', 'report_usage'));
         for ($i = 0; $i < $days; $i++) {
             $dt->add(new \DateInterval("P1D"));
             echo \html_writer::tag("th", $dt->format("d.m"));
-
         }
 
         echo \html_writer::end_tag("tr");
         echo \html_writer::end_tag('thead');
         echo \html_writer::start_tag('tbody');
-        list($data, $max) = $renderable->getData();
+        list($data, $max) = $renderable->get_data();
         foreach ($data as $k => $v) {
             $context = \context::instance_by_id($k, IGNORE_MISSING);
             echo \html_writer::start_tag("tr");
@@ -80,6 +77,21 @@ class renderer extends \plugin_renderer_base {
         $str .= str_pad(dechex($g), 2, "0", STR_PAD_LEFT);
         $str .= str_pad(dechex($b), 2, "0", STR_PAD_LEFT);
         return $str;
+    }
+
+    public function render_report_usage_chart(report_usage_chart_renderable $renderable) {
+        global $OUTPUT;
+
+        $chart = new \core\chart_line();
+        $data = $renderable->get_data();
+        foreach ($data as $k => $v) {
+            $name = \context::instance_by_id($k, IGNORE_MISSING)->get_context_name(false);
+            $series = new \core\chart_series($name, array_values($v));
+            $chart->add_series($series);
+        }
+        $chart->set_labels($renderable->create_labels());
+
+        echo $OUTPUT->render($chart);
     }
 
 }

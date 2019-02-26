@@ -26,17 +26,20 @@ namespace report_usage\output;
 
 defined('MOODLE_INTERNAL') || die();
 
-class report_usage_renderable implements \renderable {
+class report_usage_chart_renderable implements \renderable
+{
 
     public $days;
     public $cid;
 
-    public function __construct($days, $cid) {
+    public function __construct($days, $cid)
+    {
         $this->days = $days;
         $this->cid = $cid;
     }
 
-    public function get_data() {
+    public function get_data($only_amount = true)
+    {
         global $DB;
 
         $date = new \DateTime($this->days . " days ago");
@@ -45,24 +48,38 @@ class report_usage_renderable implements \renderable {
                   FROM {logstore_usage_log} 
                  WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
               GROUP BY contextid, yearcreated, monthcreated, daycreated
-              ORDER BY contextid";
+              ORDER BY contextid, yearcreated, monthcreated, daycreated";
 
         $records = $DB->get_records_sql($sql, $params);
 
         $output = [];
-        $max_amount = 0;
         foreach ($records as $v) {
-            if($v->amount > $max_amount)
-                $max_amount = $v->amount;
-
-            if(!isset($output[$v->contextid])) {
+            if (!isset($output[$v->contextid])) {
                 $output[$v->contextid] = [];
             }
             $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
             $datediff = intval($diff->diff($date, true)->format("%a"));
-            $output[$v->contextid][$datediff] = $v;
+            $output[$v->contextid][$datediff] = $only_amount ? intval($v->amount) : $v;
         }
-        return array($output, $max_amount);
+
+        for($i = 0; $i < $this->days; $i++) {
+            foreach($output as $k => $v) {
+                if(!isset($output[$k][$i])) {
+                    $output[$k][$i] = 0;
+                }
+            }
+        }
+
+        return $output;
     }
 
+    public function create_labels() {
+        $date = new \DateTime($this->days . " days ago");
+        $labels = [];
+        for($i = 0; $i < $this->days; $i++) {
+            $labels[] = $date->format("d.m");
+            $date->add(new \DateInterval("P1D"));
+        }
+        return $labels;
+    }
 }

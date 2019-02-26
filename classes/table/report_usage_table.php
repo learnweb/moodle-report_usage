@@ -32,25 +32,101 @@ require_once($CFG->libdir . '/tablelib.php');
 
 class report_usage_table extends \flexible_table {
 
+    private $couseid;
+
+    private $days;
+
+
     public function __construct($courseid, $days) {
         parent::__construct("report_usage_" . $courseid);
 
+        $this->set_attribute('class', 'generaltable generalbox');
+        $this->show_download_buttons_at(array(TABLE_P_BOTTOM));
+
+        $this->couseid = $courseid;
+        $this->days = $days;
+
         $dt = new \DateTime($days . " days ago");
 
-        $cols = [];
-        $headers = [];
+        $cols = ['name'];
+        $headers = ["<div style='padding: .5rem'>".get_string('file', 'report_usage')."</div>"];
 
         for ($i = 0; $i < $days; $i++) {
             $cols[] = $dt->format('Y-m-d');
-            $headers[] = $dt->format('d.m');
+            $name = $dt->format('d.m');
+            $headers[] = "<div style='padding: .5rem'>$name</div>";
             $dt->add(new \DateInterval("P1D"));
         }
 
         $this->define_columns($cols);
         $this->define_headers($headers);
+        $this->is_downloadable(true);
+
+        $this->column_style_all('padding', '0');
     }
 
-    public function addFunkyData() {
-        $this->add_data($this->headers);
+    public function init_data() {
+        global $DB;
+        $date = new \DateTime($this->days . " days ago");
+
+        $params = array($this->couseid, $date->format("Ymd"));
+        $sql = "SELECT contextid AS id, MAX(amount)
+                  FROM (
+                      SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
+                        FROM {logstore_usage_log}
+                       WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
+                    GROUP BY contextid, yearcreated, monthcreated, daycreated
+                  ) AS sub
+              GROUP BY contextid";
+        $max = $DB->get_records_sql_menu($sql, $params);
+
+        $biggestMax = 0;
+        foreach($max as $m) {
+            if(intval($m) > $biggestMax) {
+                $biggestMax = intval($m);
+            }
+        }
+
+        $sql = "SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
+                  FROM {logstore_usage_log} 
+                 WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
+              GROUP BY contextid, yearcreated, monthcreated, daycreated
+              ORDER BY contextid, yearcreated, monthcreated, daycreated";
+
+        $records = $DB->get_records_sql($sql, $params);
+
+        $data = [];
+
+        foreach ($records as $v) {
+            if(!isset($data[$v->contextid])) {
+                $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
+                $name = $context->get_context_name(false, true);
+                $link = $context->get_url();
+                $color = $this->get_color_by_percentage(intval($max[$v->contextid]) / $biggestMax);
+                $html = "<div style='background-color: $color; padding: .5rem'><a href='$link'>$name</a></div>";
+                //TODO irgendwie anders machen!
+
+                $data[$v->contextid] = [$html];
+            }
+
+            $color = $this->get_color_by_percentage($v->amount / intval($max[$v->contextid]));
+            $data[$v->contextid][] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
+            //TODO hier auch!
+        }
+
+        foreach($data as $row) {
+            $this->add_data($row);
+        }
+    }
+
+    protected function get_color_by_percentage($per) {
+        $r = 255;
+        $g = $b = 255 - intval($per * 150);
+
+        $str = "#";
+        $str .= str_pad(dechex($r), 2, "0", STR_PAD_LEFT);
+        $str .= str_pad(dechex($g), 2, "0", STR_PAD_LEFT);
+        $str .= str_pad(dechex($b), 2, "0", STR_PAD_LEFT);
+        return $str;
     }
 }

@@ -49,7 +49,11 @@ $output = $PAGE->get_renderer('report_usage');
 echo $output->header();
 echo $output->heading($course->fullname . ': ' . get_string('pluginname', 'report_usage'));
 
-$renderable = new \report_usage\output\report_usage_renderable($days, $id);
+$renderable = new \report_usage\output\report_usage_chart_renderable($days, $id);
+
+//echo html_writer::empty_tag('canvas', array('id' => 'report_usage_chart', 'width' => 500, 'height' => 500));
+//$PAGE->requires->js_call_amd('report_usage/init', 'init', array($renderable->getData()));
+
 echo $output->render($renderable);
 
 echo $output->footer();

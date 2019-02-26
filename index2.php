@@ -51,9 +51,9 @@ echo $OUTPUT->heading($course->fullname . ': ' . get_string('pluginname', 'repor
 
 $table = new \report_usage\table\report_usage_table($id, $days);
 $table->define_baseurl($baseurl);
-$table->setup();
-$table->addFunkyData();
 
-$table->print_html();
+$table->setup();
+$table->init_data();
+$table->finish_html();
 
 echo $OUTPUT->footer();
