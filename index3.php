@@ -51,7 +51,7 @@ echo $output->heading($course->fullname . ': ' . get_string('pluginname', 'repor
 
 $renderable = new \report_usage\output\report_usage_chart_renderable($days, $id);
 
-echo html_writer::empty_tag('canvas', array('id' => 'report_usage_chart', 'width' => 800, 'height' => 500));
+echo html_writer::empty_tag('canvas', array('id' => 'report_usage_chart', 'width' => 800, 'height' => 400));
 $PAGE->requires->js_call_amd('report_usage/init', 'init', array($renderable->get_data(), $renderable->create_labels()));
 
 //echo $output->render($renderable);

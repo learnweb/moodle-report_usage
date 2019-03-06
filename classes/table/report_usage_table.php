@@ -52,10 +52,10 @@ class report_usage_table extends \flexible_table {
         $headers = ["<div style='padding: .5rem'>".get_string('file', 'report_usage')."</div>"];
 
         for ($i = 0; $i < $days; $i++) {
+            $dt->add(new \DateInterval("P1D"));
             $cols[] = $dt->format('Y-m-d');
             $name = $dt->format('d.m');
             $headers[] = "<div style='padding: .5rem'>$name</div>";
-            $dt->add(new \DateInterval("P1D"));
         }
 
         $this->define_columns($cols);
@@ -78,10 +78,10 @@ class report_usage_table extends \flexible_table {
                     GROUP BY contextid, yearcreated, monthcreated, daycreated
                   ) AS sub
               GROUP BY contextid";
-        $max = $DB->get_records_sql_menu($sql, $params);
+        $maxima = $DB->get_records_sql_menu($sql, $params);
 
         $biggestMax = 0;
-        foreach($max as $m) {
+        foreach($maxima as $m) {
             if(intval($m) > $biggestMax) {
                 $biggestMax = intval($m);
             }
@@ -102,19 +102,31 @@ class report_usage_table extends \flexible_table {
                 $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
                 $name = $context->get_context_name(false, true);
                 $link = $context->get_url();
-                $color = $this->get_color_by_percentage(intval($max[$v->contextid]) / $biggestMax);
+                $color = $this->get_color_by_percentage(intval($maxima[$v->contextid]) / $biggestMax);
                 $html = "<div style='background-color: $color; padding: .5rem'><a href='$link'>$name</a></div>";
                 //TODO irgendwie anders machen!
 
                 $data[$v->contextid] = [$html];
             }
 
-            $color = $this->get_color_by_percentage($v->amount / intval($max[$v->contextid]));
-            $data[$v->contextid][] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
+            $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
+            $datediff = intval($diff->diff($date, true)->format("%a"));
+            $color = $this->get_color_by_percentage($v->amount / intval($maxima[$v->contextid]));
+            $data[$v->contextid][$datediff + 1] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
             //TODO hier auch!
         }
 
+        for($i = 0; $i < $this->days; $i++) {
+            foreach($data as $k => $v) {
+                if(!isset($data[$k][$i + 1])) {
+                    $color = $this->get_color_by_percentage(0);
+                    $data[$k][$i + 1] =  "<div style='background-color: $color; padding: .5rem'>0</div>";;
+                }
+            }
+        }
+
         foreach($data as $row) {
+            ksort($row);
             $this->add_data($row);
         }
     }

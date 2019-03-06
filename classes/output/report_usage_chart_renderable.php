@@ -26,20 +26,17 @@ namespace report_usage\output;
 
 defined('MOODLE_INTERNAL') || die();
 
-class report_usage_chart_renderable implements \renderable
-{
+class report_usage_chart_renderable implements \renderable {
 
     public $days;
     public $cid;
 
-    public function __construct($days, $cid)
-    {
+    public function __construct($days, $cid) {
         $this->days = $days;
         $this->cid = $cid;
     }
 
-    public function get_data($only_amount = true)
-    {
+    public function get_data($only_amount = true) {
         global $DB;
 
         $date = new \DateTime($this->days . " days ago");
@@ -62,12 +59,13 @@ class report_usage_chart_renderable implements \renderable
             $output[$v->contextid][$datediff] = $only_amount ? intval($v->amount) : $v;
         }
 
-        for($i = 0; $i < $this->days; $i++) {
-            foreach($output as $k => $v) {
-                if(!isset($output[$k][$i])) {
+        foreach ($output as $k => $v) {
+            for ($i = 0; $i < $this->days; $i++) {
+                if (!isset($output[$k][$i])) {
                     $output[$k][$i] = 0;
                 }
             }
+            ksort($output[$k]);
         }
 
         return $output;
@@ -76,9 +74,9 @@ class report_usage_chart_renderable implements \renderable
     public function create_labels() {
         $date = new \DateTime($this->days . " days ago");
         $labels = [];
-        for($i = 0; $i < $this->days; $i++) {
-            $labels[] = $date->format("d.m");
+        for ($i = 0; $i < $this->days; $i++) {
             $date->add(new \DateInterval("P1D"));
+            $labels[] = $date->format("d.m");
         }
         return $labels;
     }
