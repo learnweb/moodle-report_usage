@@ -54,10 +54,12 @@ class report_usage_chart_renderable implements \renderable {
             if (!isset($output[$v->contextid])) {
                 $output[$v->contextid] = [];
             }
-            $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
-            $datediff = intval($diff->diff($date, true)->format("%a"));
-            $output[$v->contextid][$datediff] = $only_amount ? intval($v->amount) : $v;
+            $diffDate = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
+            $diff = intval($diffDate->diff($date, true)->format("%a"));
+            $output[$v->contextid][$diff] = $only_amount ? intval($v->amount) : $v;
         }
+
+        $names = [];
 
         foreach ($output as $k => $v) {
             for ($i = 0; $i < $this->days; $i++) {
@@ -65,10 +67,14 @@ class report_usage_chart_renderable implements \renderable {
                     $output[$k][$i] = 0;
                 }
             }
+            $context = \context::instance_by_id($k, IGNORE_MISSING);
+            $names[$k] = $context->get_context_name(false, true);
             ksort($output[$k]);
         }
 
-        return $output;
+
+
+        return array($output, $names);
     }
 
     public function create_labels() {
@@ -79,5 +85,9 @@ class report_usage_chart_renderable implements \renderable {
             $labels[] = $date->format("d.m");
         }
         return $labels;
+    }
+
+    public function get_names() {
+
     }
 }

@@ -20,114 +20,56 @@
  * @copyright  2019 Justus Dieckmann
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/chartjs'],
-    function ($, Chartjs) {
+define(['jquery', 'core/chartjs', 'report_usage/color'],
+    function($, Chartjs, Colors) {
 
-        var colors = [];
+        var colors;
 
-        function hsvToRgb(h, s, v) {
-            var r, g, b, i, f, p, q, t;
-            i = Math.floor(h * 6);
-            f = h * 6 - i;
-            p = v * (1 - s);
-            q = v * (1 - f * s);
-            t = v * (1 - (1 - f) * s);
-            switch (i % 6) {
-                case 0:
-                    r = v;
-                    g = t;
-                    b = p;
-                    break;
-                case 1:
-                    r = q;
-                    g = v;
-                    b = p;
-                    break;
-                case 2:
-                    r = p;
-                    g = v;
-                    b = t;
-                    break;
-                case 3:
-                    r = p;
-                    g = q;
-                    b = v;
-                    break;
-                case 4:
-                    r = t;
-                    g = p;
-                    b = v;
-                    break;
-                case 5:
-                    r = v;
-                    g = p;
-                    b = q;
-                    break;
-            }
-            return {
-                r: Math.round(r * 255),
-                g: Math.round(g * 255),
-                b: Math.round(b * 255)
-            };
-        }
-
-        function componentToHex(c) {
-            var hex = c.toString(16);
-            return hex.length == 1 ? "0" + hex : hex;
-        }
-
-        function hsvToHex(h, s, v) {
-            var rgb = hsvToRgb(h, s, v);
-            return "#" + componentToHex(rgb.r) + componentToHex(rgb.g) + componentToHex(rgb.b);
-        }
-
-        function createColors() {
-            for (var i = 0; i < 360; i += 35) {
-                colors.push(hsvToHex(i / 360, 1, 0.95));
-            }
-            for (var i1 = 0; i1 < 360; i1 += 35) {
-                colors.push(hsvToHex(i1 / 360, 0.6, 0.95));
-            }
-            for (var i2 = 0; i2 < 360; i2 += 35) {
-                colors.push(hsvToHex(i2 / 360, 1, 0.65));
-            }
-            for (var i3 = 0; i3 < 360; i3 += 35) {
-                colors.push(hsvToHex(i3 / 360, 1, 0.4));
-            }
-        }
-
-        function processData(data, labels) {
-            var processedData = {labels: labels, datasets: []};
+        /**
+         * Processes the data and configurates Datasets
+         * @param {array} data Array of Datasets
+         * @param {array} names Array of names, indexed by id of activity
+         * @returns {Array} the datasets configured for chartjs
+         */
+        function processData(data, names) {
+            var datasets = [];
 
             for (var id in data) {
-                processedData.datasets.push(
+                datasets.push(
                     {
                         fill: false,
-                        label: id,
+                        label: names[id],
+                        hidden: true,
                         data: data[id],
-                        borderColor: colors[processedData.datasets.length % colors.length]
+                        borderColor: colors[datasets.length % colors.length]
                     });
             }
-            return processedData;
+            return datasets;
         }
 
-        function init(data, labels) {
-
-            createColors();
-            var processedData = processData(data, labels);
+        /**
+         * Function to initialize Chart and pass data
+         * @param {array} data Array of Datasets
+         * @param {array} labels Array of labels for x-Axis
+         * @param {array} names Array of names, indexed by id of activity
+         */
+        function init(data, labels, names) {
+            colors = Colors.createColors();
 
             var ctx = document.getElementById('report_usage_chart').getContext('2d');
-            var chart = new Chartjs(ctx, {
+            new Chartjs(ctx, {
                 // The type of chart we want to create
                 type: 'line',
 
                 // The data for our dataset
-                data: processedData,
-
+                data: {
+                    labels: labels,
+                    datasets: processData(data, names)
+                },
                 // Configuration options go here
                 options: {}
             });
-        };
+        }
 
         return {
             init: init
