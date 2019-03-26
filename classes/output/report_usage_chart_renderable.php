@@ -36,7 +36,7 @@ class report_usage_chart_renderable implements \renderable {
         $this->cid = $cid;
     }
 
-    public function get_data($only_amount = true) {
+    public function get_data($onlyamount = true) {
         global $DB;
 
         $date = new \DateTime($this->days . " days ago");
@@ -54,9 +54,9 @@ class report_usage_chart_renderable implements \renderable {
             if (!isset($output[$v->contextid])) {
                 $output[$v->contextid] = [];
             }
-            $diffDate = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
-            $diff = intval($diffDate->diff($date, true)->format("%a"));
-            $output[$v->contextid][$diff] = $only_amount ? intval($v->amount) : $v;
+            $diffdate = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
+            $diff = intval($diffdate->diff($date, true)->format("%a"));
+            $output[$v->contextid][$diff] = $onlyamount ? intval($v->amount) : $v;
         }
 
         $names = [];
@@ -71,8 +71,6 @@ class report_usage_chart_renderable implements \renderable {
             $names[$k] = $context->get_context_name(false, true);
             ksort($output[$k]);
         }
-
-
 
         return array($output, $names);
     }

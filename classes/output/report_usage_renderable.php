@@ -42,7 +42,7 @@ class report_usage_renderable implements \renderable {
         $date = new \DateTime($this->days . " days ago");
         $params = array($this->cid, $date->format("Ymd"));
         $sql = "SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
-                  FROM {logstore_usage_log} 
+                  FROM {logstore_usage_log}
                  WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
               GROUP BY contextid, yearcreated, monthcreated, daycreated
               ORDER BY contextid";
@@ -50,19 +50,20 @@ class report_usage_renderable implements \renderable {
         $records = $DB->get_records_sql($sql, $params);
 
         $output = [];
-        $max_amount = 0;
+        $maxamount = 0;
         foreach ($records as $v) {
-            if($v->amount > $max_amount)
-                $max_amount = $v->amount;
+            if ($v->amount > $maxamount) {
+                $maxamount = $v->amount;
+            }
 
-            if(!isset($output[$v->contextid])) {
+            if (!isset($output[$v->contextid])) {
                 $output[$v->contextid] = [];
             }
             $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
             $datediff = intval($diff->diff($date, true)->format("%a"));
             $output[$v->contextid][$datediff] = $v;
         }
-        return array($output, $max_amount);
+        return array($output, $maxamount);
     }
 
 }

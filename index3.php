@@ -55,6 +55,6 @@ echo html_writer::empty_tag('canvas', array('id' => 'report_usage_chart', 'width
 list($data, $names) = $renderable->get_data();
 $PAGE->requires->js_call_amd('report_usage/init', 'init', array($data, $renderable->create_labels(), $names));
 
-//echo $output->render($renderable);
+// echo $output->render($renderable);
 
 echo $output->footer();
