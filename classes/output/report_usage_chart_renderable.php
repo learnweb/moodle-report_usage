@@ -42,7 +42,7 @@ class report_usage_chart_renderable implements \renderable {
         $date = new \DateTime($this->days . " days ago");
         $params = array($this->cid, $date->format("Ymd"));
         $sql = "SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
-                  FROM {logstore_usage_log} 
+                  FROM {logstore_usage_log}
                  WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
               GROUP BY contextid, yearcreated, monthcreated, daycreated
               ORDER BY contextid, yearcreated, monthcreated, daycreated";
