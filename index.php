@@ -45,11 +45,22 @@ require_capability('report/usage:view', $context);
 $PAGE->set_title($course->shortname . ': ' . get_string('pluginname', 'report_usage'));
 $PAGE->set_heading($course->fullname);
 
-$output = $PAGE->get_renderer('report_usage');
-echo $output->header();
-echo $output->heading($course->fullname . ': ' . get_string('pluginname', 'report_usage'));
+echo $OUTPUT->header();
+echo $OUTPUT->heading($course->fullname . ': ' . get_string('pluginname', 'report_usage'));
 
-$renderable = new \report_usage\output\report_usage_renderable($days, $id);
-echo $output->render($renderable);
+$table = new \report_usage\table\report_usage_table($id, $days);
+$table->define_baseurl($baseurl);
 
-echo $output->footer();
+ob_start();
+$table->setup();
+$table->init_data();
+$table->finish_html();
+$tableoutput = ob_get_clean();
+
+echo $OUTPUT->render_from_template('report_usage/tabs', array('table' => $tableoutput));
+
+$renderable = new \report_usage\output\report_usage_chart_renderable($days, $id);
+list($data, $names) = $renderable->get_data();
+$PAGE->requires->js_call_amd('report_usage/init', 'init', array($data, $renderable->create_labels(), $names));
+
+echo $OUTPUT->footer();
