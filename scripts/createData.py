@@ -8,6 +8,7 @@ time = datetime.now()
 db = records.Database('postgres://testdb:hello@localhost:32768/testdb')
 
 db.query('TRUNCATE TABLE mdl_logstore_usage_log RESTART IDENTITY')
+db.query('DELETE FROM mdl_logstore_usage_log')
 
 sql = "INSERT INTO mdl_logstore_usage_log "
 sql += "(objecttable, objectid, contextid, userid, courseid, amount, daycreated, monthcreated, yearcreated) VALUES "
