@@ -27,9 +27,9 @@ require_once("lib.php");
 $id = required_param('id', PARAM_INT); // Course ID.
 $days = optional_param('days', 30, PARAM_INT);
 
-$baseurl = new moodle_url('/report/usage/index.php', array('id' => $id, 'days' => $days));
+$url = new moodle_url('/report/usage/index.php', array('id' => $id, 'days' => $days));
 
-$PAGE->set_url($baseurl);
+$PAGE->set_url($url);
 $PAGE->set_pagelayout('report');
 
 if ($days > 90) {
@@ -45,11 +45,37 @@ require_capability('report/usage:view', $context);
 $PAGE->set_title($course->shortname . ': ' . get_string('pluginname', 'report_usage'));
 $PAGE->set_heading($course->fullname);
 
+$mform = new \report_usage\filter_form($url);
+if ($mform->is_cancelled()) {
+    redirect($url);
+}
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading($course->fullname . ': ' . get_string('pluginname', 'report_usage'));
 
+$start = $course->startdate;
+$end = time();
+if ($course->enddate && $course->enddate < $end) {
+    $end = $course->enddate;
+}
+
+$default = array('filterstartdate' => $start, 'filterenddate' => $end, 'id' => $id);
+
+
+
+//Form processing and displaying is done here
+if ($fromform = $mform->get_data()) {
+    $start = $fromform->filterstartdate;
+    $end = $fromform->filterenddate;
+} else {
+    //Set default data (if any)
+    $mform->set_data($default);
+//displays the form
+    $mform->display();
+}
+
 $table = new \report_usage\table\report_usage_table($id, $days);
-$table->define_baseurl($baseurl);
+$table->define_baseurl($url);
 
 ob_start();
 $table->setup();
