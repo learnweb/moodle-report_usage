@@ -28,22 +28,32 @@ defined('MOODLE_INTERNAL') || die();
 
 class report_usage_chart_renderable implements \renderable {
 
-    public $days;
+    public $start;
+    public $end;
     public $cid;
 
-    public function __construct($days, $cid) {
-        $this->days = $days;
+    public function __construct($start, $end, $cid) {
+        $this->start = $start;
+        $this->end = $end;
         $this->cid = $cid;
     }
 
     public function get_data($onlyamount = true) {
         global $DB;
 
-        $date = new \DateTime($this->days . " days ago");
-        $params = array($this->cid, $date->format("Ymd"));
+        $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
+        $startdate->setTimestamp($this->start);
+
+        $enddate = new \DateTime("now", \core_date::get_server_timezone_object());
+        $enddate->setTimestamp($this->end);
+
+        $days = intval($startdate->diff($enddate)->format('%a'));
+
+        $params = array($this->cid, $startdate->format("Ymd"), $enddate->format("Ymd"));
         $sql = "SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
                   FROM {logstore_usage_log}
                  WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
+                       AND yearcreated * 10000 + monthcreated * 100 + daycreated <= ?
               GROUP BY contextid, yearcreated, monthcreated, daycreated
               ORDER BY contextid, yearcreated, monthcreated, daycreated";
 
@@ -55,14 +65,14 @@ class report_usage_chart_renderable implements \renderable {
                 $output[$v->contextid] = [];
             }
             $diffdate = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
-            $diff = intval($diffdate->diff($date, true)->format("%a"));
+            $diff = intval($diffdate->diff($startdate, true)->format("%a"));
             $output[$v->contextid][$diff] = $onlyamount ? intval($v->amount) : $v;
         }
 
         $names = [];
 
         foreach ($output as $k => $v) {
-            for ($i = 0; $i < $this->days; $i++) {
+            for ($i = 0; $i <= $days; $i++) {
                 if (!isset($output[$k][$i])) {
                     $output[$k][$i] = 0;
                 }
@@ -76,16 +86,19 @@ class report_usage_chart_renderable implements \renderable {
     }
 
     public function create_labels() {
-        $date = new \DateTime($this->days . " days ago");
+        $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
+        $startdate->setTimestamp($this->start);
+
+        $enddate = new \DateTime("now", \core_date::get_server_timezone_object());
+        $enddate->setTimestamp($this->end);
+
+        $days = intval($startdate->diff($enddate)->format('%a'));
+        $date = new \DateTime($days . " days ago");
         $labels = [];
-        for ($i = 0; $i < $this->days; $i++) {
-            $date->add(new \DateInterval("P1D"));
+        for ($i = 0; $i <=  $days; $i++) {
             $labels[] = $date->format("d.m");
+            $date->add(new \DateInterval("P1D"));
         }
         return $labels;
-    }
-
-    public function get_names() {
-
     }
 }

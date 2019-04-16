@@ -45,7 +45,7 @@ require_capability('report/usage:view', $context);
 $PAGE->set_title($course->shortname . ': ' . get_string('pluginname', 'report_usage'));
 $PAGE->set_heading($course->fullname);
 
-$mform = new \report_usage\filter_form($url);
+$mform = new \report_usage\filter_form(new moodle_url('/report/usage/index.php'), null, 'get');
 if ($mform->is_cancelled()) {
     redirect($url);
 }
@@ -61,20 +61,17 @@ if ($course->enddate && $course->enddate < $end) {
 
 $default = array('filterstartdate' => $start, 'filterenddate' => $end, 'id' => $id);
 
-
-
 //Form processing and displaying is done here
 if ($fromform = $mform->get_data()) {
     $start = $fromform->filterstartdate;
     $end = $fromform->filterenddate;
-} else {
+}
     //Set default data (if any)
     $mform->set_data($default);
 //displays the form
     $mform->display();
-}
 
-$table = new \report_usage\table\report_usage_table($id, $days);
+$table = new \report_usage\table\report_usage_table($id, $start, $end);
 $table->define_baseurl($url);
 
 ob_start();
@@ -85,7 +82,7 @@ $tableoutput = ob_get_clean();
 
 echo $OUTPUT->render_from_template('report_usage/tabs', array('table' => $tableoutput));
 
-$renderable = new \report_usage\output\report_usage_chart_renderable($days, $id);
+$renderable = new \report_usage\output\report_usage_chart_renderable($start, $end, $id);
 list($data, $names) = $renderable->get_data();
 $PAGE->requires->js_call_amd('report_usage/init', 'init', array($data, $renderable->create_labels(), $names));
 

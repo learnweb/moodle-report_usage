@@ -35,27 +35,41 @@ class report_usage_table extends \flexible_table {
     private $couseid;
 
     private $days;
+    private $startdate;
+    private $enddate;
 
 
-    public function __construct($courseid, $days) {
+    public function __construct($courseid, $start, $end) {
         parent::__construct("report_usage_" . $courseid);
+
+        $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
+        $startdate->setTimestamp($start);
+        $this->startdate = $startdate;
+
+        $enddate = new \DateTime("now", \core_date::get_server_timezone_object());
+        $enddate->setTimestamp($end);
+        $this->enddate = $enddate;
+
+        $days = intval($startdate->diff($enddate)->format('%a'));
+        $this->days =  $days;
 
         $this->set_attribute('class', 'generaltable generalbox');
         $this->show_download_buttons_at(array(TABLE_P_BOTTOM));
 
         $this->couseid = $courseid;
-        $this->days = $days;
 
-        $dt = new \DateTime($days . " days ago");
+
+        $dt = new \DateTime("now", \core_date::get_server_timezone_object());
+        $dt->setTimestamp($start);
 
         $cols = ['name'];
         $headers = ["<div style='padding: .5rem'>".get_string('file', 'report_usage')."</div>"];
 
-        for ($i = 0; $i < $days; $i++) {
-            $dt->add(new \DateInterval("P1D"));
+        for ($i = 0; $i <= $days; $i++) {
             $cols[] = $dt->format('Y-m-d');
             $name = $dt->format('d.m');
             $headers[] = "<div style='padding: .5rem'>$name</div>";
+            $dt->add(new \DateInterval("P1D"));
         }
 
         $this->define_columns($cols);
@@ -63,11 +77,12 @@ class report_usage_table extends \flexible_table {
         $this->is_downloadable(true);
 
         $this->column_style_all('padding', '0');
+        $this->column_style_all('white-space', 'nowrap');
     }
 
     public function init_data() {
         global $DB;
-        $date = new \DateTime($this->days . " days ago");
+        $date = $this->startdate;
 
         $params = array($this->couseid, $date->format("Ymd"));
         $sql = "SELECT contextid AS id, MAX(amount)
@@ -104,7 +119,6 @@ class report_usage_table extends \flexible_table {
                 $link = $context->get_url();
                 $color = $this->get_color_by_percentage(intval($maxima[$v->contextid]) / $biggestmax);
                 $html = "<div style='background-color: $color; padding: .5rem'><a href='$link'>$name</a></div>";
-                // TODO irgendwie anders machen!
 
                 $data[$v->contextid] = [$html];
             }
@@ -113,10 +127,9 @@ class report_usage_table extends \flexible_table {
             $datediff = intval($diff->diff($date, true)->format("%a"));
             $color = $this->get_color_by_percentage($v->amount / intval($maxima[$v->contextid]));
             $data[$v->contextid][$datediff + 1] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
-            // TODO hier auch!
         }
 
-        for ($i = 0; $i < $this->days; $i++) {
+        for ($i = 0; $i <= $this->days; $i++) {
             foreach ($data as $k => $v) {
                 if (!isset($data[$k][$i + 1])) {
                     $color = $this->get_color_by_percentage(0);
