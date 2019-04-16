@@ -25,16 +25,11 @@
 require_once("../../config.php");
 require_once("lib.php");
 $id = required_param('id', PARAM_INT); // Course ID.
-$days = optional_param('days', 30, PARAM_INT);
 
-$url = new moodle_url('/report/usage/index.php', array('id' => $id, 'days' => $days));
+$url = new moodle_url('/report/usage/index.php', array('id' => $id));
 
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('report');
-
-if ($days > 90) {
-    $days = 90;
-}
 
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 require_login($course);
@@ -61,15 +56,14 @@ if ($course->enddate && $course->enddate < $end) {
 
 $default = array('filterstartdate' => $start, 'filterenddate' => $end, 'id' => $id);
 
-//Form processing and displaying is done here
+// Form processing and displaying is done here.
 if ($fromform = $mform->get_data()) {
     $start = $fromform->filterstartdate;
     $end = $fromform->filterenddate;
 }
-    //Set default data (if any)
-    $mform->set_data($default);
-//displays the form
-    $mform->display();
+// Set default data (if any).
+$mform->set_data($default);
+$mform->display();
 
 $table = new \report_usage\table\report_usage_table($id, $start, $end);
 $table->define_baseurl($url);
