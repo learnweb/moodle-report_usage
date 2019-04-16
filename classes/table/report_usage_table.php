@@ -51,13 +51,12 @@ class report_usage_table extends \flexible_table {
         $this->enddate = $enddate;
 
         $days = intval($startdate->diff($enddate)->format('%a'));
-        $this->days =  $days;
+        $this->days = $days;
 
         $this->set_attribute('class', 'generaltable generalbox');
         $this->show_download_buttons_at(array(TABLE_P_BOTTOM));
 
         $this->couseid = $courseid;
-
 
         $dt = new \DateTime("now", \core_date::get_server_timezone_object());
         $dt->setTimestamp($start);
@@ -82,9 +81,8 @@ class report_usage_table extends \flexible_table {
 
     public function init_data() {
         global $DB;
-        $date = $this->startdate;
 
-        $params = array($this->couseid, $date->format("Ymd"));
+        $params = array($this->couseid, $this->startdate->format("Ymd"), $this->enddate->format("Ymd"));
         $sql = "SELECT contextid AS id, MAX(amount)
                   FROM (
                       SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
@@ -105,6 +103,7 @@ class report_usage_table extends \flexible_table {
         $sql = "SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
                   FROM {logstore_usage_log}
                  WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
+                       AND yearcreated * 10000 + monthcreated * 100 + daycreated <= ?
               GROUP BY contextid, yearcreated, monthcreated, daycreated
               ORDER BY contextid, yearcreated, monthcreated, daycreated";
 
@@ -124,7 +123,10 @@ class report_usage_table extends \flexible_table {
             }
 
             $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
-            $datediff = intval($diff->diff($date, true)->format("%a"));
+            $datediff = intval($diff->diff($this->startdate, true)->format("%a"));
+            if ($datediff > $this->days) {
+                echo $datediff;
+            }
             $color = $this->get_color_by_percentage($v->amount / intval($maxima[$v->contextid]));
             $data[$v->contextid][$datediff + 1] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
         }

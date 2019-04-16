@@ -93,11 +93,10 @@ class report_usage_chart_renderable implements \renderable {
         $enddate->setTimestamp($this->end);
 
         $days = intval($startdate->diff($enddate)->format('%a'));
-        $date = new \DateTime($days . " days ago");
         $labels = [];
-        for ($i = 0; $i <=  $days; $i++) {
-            $labels[] = $date->format("d.m");
-            $date->add(new \DateInterval("P1D"));
+        for ($i = 0; $i <= $days; $i++) {
+            $labels[] = $startdate->format("d.m");
+            $startdate->add(new \DateInterval("P1D"));
         }
         return $labels;
     }
