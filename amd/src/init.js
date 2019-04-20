@@ -69,6 +69,10 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
                 // Configuration options go here
                 options: {}
             });
+
+            $('.nav-tabs a').on('shown.bs.tab', function(event){
+                $('input[name="tab"]')[0].value = $(event.target)[0].id;
+            });
         }
 
         return {

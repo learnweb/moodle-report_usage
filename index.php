@@ -53,6 +53,7 @@ $end = time();
 if ($course->enddate && $course->enddate < $end) {
     $end = $course->enddate;
 }
+$tab = 'table-tab';
 
 $default = array('filterstartdate' => $start, 'filterenddate' => $end, 'id' => $id);
 
@@ -60,6 +61,7 @@ $default = array('filterstartdate' => $start, 'filterenddate' => $end, 'id' => $
 if ($fromform = $mform->get_data()) {
     $start = $fromform->filterstartdate;
     $end = $fromform->filterenddate;
+    $tab = $fromform->tab;
 }
 // Set default data (if any).
 $mform->set_data($default);
@@ -74,7 +76,13 @@ $table->init_data();
 $table->finish_html();
 $tableoutput = ob_get_clean();
 
-echo $OUTPUT->render_from_template('report_usage/tabs', array('table' => $tableoutput));
+$mustacheparams = array('table' => $tableoutput);
+if ($tab && $tab == 'chart-tab') {
+    $mustacheparams['chart-tab'] = true;
+} else {
+    $mustacheparams['table-tab'] = true;
+}
+echo $OUTPUT->render_from_template('report_usage/tabs', $mustacheparams);
 
 $renderable = new \report_usage\output\report_usage_chart_renderable($start, $end, $id);
 list($data, $names) = $renderable->get_data();

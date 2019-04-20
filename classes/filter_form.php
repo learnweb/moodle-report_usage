@@ -43,6 +43,9 @@ class filter_form extends \moodleform {
 
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
+        $mform->addElement('hidden', 'tab');
+        $mform->setType('tab', PARAM_ALPHANUMEXT);
+        $mform->setDefault('tab', 'table-tab');
 
         $opts = ['optional' => false];
         $mform->addElement('date_selector', 'filterstartdate', get_string('from'), $opts);
