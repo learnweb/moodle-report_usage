@@ -55,12 +55,12 @@ if ($course->enddate && $course->enddate < $end) {
 }
 $tab = 'table-tab';
 
-$default = array('filterstartdate' => $start, 'filterenddate' => $end, 'id' => $id);
+$default = array('startdate' => $start, 'enddate' => $end, 'id' => $id);
 
 // Form processing and displaying is done here.
 if ($fromform = $mform->get_data()) {
-    $start = $fromform->filterstartdate;
-    $end = $fromform->filterenddate;
+    $start = $fromform->startdate;
+    $end = $fromform->enddate;
     $tab = $fromform->tab;
 }
 // Set default data (if any).

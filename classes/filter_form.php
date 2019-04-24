@@ -48,8 +48,8 @@ class filter_form extends \moodleform {
         $mform->setDefault('tab', 'table-tab');
 
         $opts = ['optional' => false];
-        $mform->addElement('date_selector', 'filterstartdate', get_string('from'), $opts);
-        $mform->addElement('date_selector', 'filterenddate', get_string('to'), $opts);
+        $mform->addElement('date_selector', 'startdate', get_string('from'), $opts);
+        $mform->addElement('date_selector', 'enddate', get_string('to'), $opts);
 
         // Add the filter/cancel buttons (without 'closeHeaderBefore', so they collapse with the filter).
         $buttonarray = [
@@ -65,10 +65,17 @@ class filter_form extends \moodleform {
      */
     public function definition_after_data() {
         $mform = $this->_form;
-        $filterstartdate = $mform->getElement('filterstartdate')->getValue();
-        $filterenddate = $mform->getElement('filterenddate')->getValue();
-        if (!empty($filterstartdate['enabled']) || !empty($filterenddate['enabled'])) {
+        $startdate = $mform->getElement('startdate')->getValue();
+        $enddate = $mform->getElement('enddate')->getValue();
+        if (!empty($startdate['enabled']) || !empty($enddate['enabled'])) {
             $mform->setExpanded('filterheader', true);
+        }
+    }
+
+    public function validation($data, $files) {
+        // End date should be later than the start date.
+        if ($data['enddate'] < $data['startdate']) {
+            return array('enddate' => get_string('error_endbeforestart', 'report_usage'));
         }
     }
 }

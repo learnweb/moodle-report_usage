@@ -16,3 +16,4 @@
 
 $string['pluginname'] = 'Activity analysis';
 $string['file'] = 'File';
+$string['error_endbeforestart'] = 'The end date has to be later than the start date!';
