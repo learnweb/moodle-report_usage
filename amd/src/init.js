@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['jquery', 'core/chartjs', 'report_usage/color'],
-    function ($, Chartjs, Colors) {
+    function($, Chartjs, Colors) {
 
         var colors;
         var courseid;
@@ -35,7 +35,7 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
         function processData(data, names) {
             var datasets = [];
 
-            var visibility = JSON.parse(localStorage.getItem('visibility_' + courseid));
+            var visibility = JSON.parse(localStorage.getItem('report_usage_visibility_' + courseid));
 
             for (var id in data) {
                 var hidden = true;
@@ -64,7 +64,7 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
                 var dataline = data[i];
                 visibility[dataline.objid] = !chartjs.isDatasetVisible(i);
             }
-            localStorage.setItem('visibility_' + courseid, JSON.stringify(visibility));
+            localStorage.setItem('report_usage_visibility_' + courseid, JSON.stringify(visibility));
         }
 
         /**
@@ -89,7 +89,7 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
                 },
                 // Configuration options go here
                 options: {
-                    onClick: function () {
+                    onClick: function() {
                         setTimeout(updateLocalStorage, 200, chartjs);
 
                     }

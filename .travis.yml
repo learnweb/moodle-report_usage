@@ -19,9 +19,6 @@ addons:
   postgresql: "9.4"
 
 matrix:
-  allow_failures:
-    - env: DB=pgsql MOODLE_BRANCH=master
-    - env: DB=mysqli MOODLE_BRANCH=master
   fast_finish: true
   exclude:
     - php: 7.0
