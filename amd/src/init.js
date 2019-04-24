@@ -21,9 +21,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['jquery', 'core/chartjs', 'report_usage/color'],
-    function($, Chartjs, Colors) {
+    function ($, Chartjs, Colors) {
 
         var colors;
+        var courseid;
 
         /**
          * Processes the data and configurates Datasets
@@ -34,17 +35,36 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
         function processData(data, names) {
             var datasets = [];
 
+            var visibility = JSON.parse(localStorage.getItem('visibility_' + courseid));
+
             for (var id in data) {
+                var hidden = true;
+                if (visibility !== null && visibility[id] === false) {
+                    hidden = false;
+                }
                 datasets.push(
                     {
+                        objid: id,
                         fill: false,
                         label: names[id],
-                        hidden: true,
+                        hidden: hidden,
                         data: data[id],
                         borderColor: colors[datasets.length % colors.length]
                     });
             }
             return datasets;
+        }
+
+
+        function updateLocalStorage(chartjs) {
+            var data = chartjs.config.data.datasets;
+            var visibility = {};
+
+            for (var i in data) {
+                var dataline = data[i];
+                visibility[dataline.objid] = !chartjs.isDatasetVisible(i);
+            }
+            localStorage.setItem('visibility_' + courseid, JSON.stringify(visibility));
         }
 
         /**
@@ -53,11 +73,12 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
          * @param {array} labels Array of labels for x-Axis
          * @param {array} names Array of names, indexed by id of activity
          */
-        function init(data, labels, names) {
+        function init(data, labels, names, cid) {
             colors = Colors.createColors();
+            courseid = cid;
 
             var ctx = document.getElementById('report_usage_chart').getContext('2d');
-            new Chartjs(ctx, {
+            var chartjs = new Chartjs(ctx, {
                 // The type of chart we want to create
                 type: 'line',
 
@@ -67,7 +88,12 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
                     datasets: processData(data, names)
                 },
                 // Configuration options go here
-                options: {}
+                options: {
+                    onClick: function () {
+                        setTimeout(updateLocalStorage, 200, chartjs);
+
+                    }
+                }
             });
         }
 

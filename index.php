@@ -86,7 +86,7 @@ echo $OUTPUT->render_from_template('report_usage/tabs', $mustacheparams);
 
 $renderable = new \report_usage\output\report_usage_chart_renderable($start, $end, $id);
 list($data, $names) = $renderable->get_data();
-$PAGE->requires->js_call_amd('report_usage/init', 'init', array($data, $renderable->create_labels(), $names));
+$PAGE->requires->js_call_amd('report_usage/init', 'init', array($data, $renderable->create_labels(), $names, $id));
 $PAGE->requires->js_call_amd('report_usage/tabs', 'init');
 
 echo $OUTPUT->footer();
