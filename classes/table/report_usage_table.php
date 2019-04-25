@@ -148,7 +148,7 @@ class report_usage_table extends \flexible_table {
 
     protected function get_color_by_percentage($per) {
         $r = 255;
-        $g = $b = 255 - intval($per * 150);
+        $g = $b = 255 - intval($per * 125);
 
         $str = "#";
         $str .= str_pad(dechex($r), 2, "0", STR_PAD_LEFT);
