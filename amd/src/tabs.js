@@ -29,8 +29,10 @@ define(['jquery'],
         function init() {
             $('.nav-tabs a').on('shown.bs.tab', function(event){
                 var id = $(event.target)[0].id;
+                // Updates the moodle form, so that the tab will be the same when form is submitted.
                 $('input[name="tab"]')[0].value = id;
 
+                // Updates the URL, so that the tab will be the same when page is reloaded.
                 var url = new URL(window.location.href);
                 url.searchParams.set('tab', id);
                 window.history.replaceState({}, "", location.pathname + url.search);

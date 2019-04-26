@@ -77,5 +77,8 @@ class filter_form extends \moodleform {
         if ($data['enddate'] < $data['startdate']) {
             return array('enddate' => get_string('error_endbeforestart', 'report_usage'));
         }
+        if ($data['enddate'] - $data['startdate'] > 366 * 24 * 60 * 60) {
+            return array('enddate' => get_string('error_periodtoolong', 'report_usage'));
+        }
     }
 }

@@ -27,7 +27,8 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
         var courseid;
 
         /**
-         * Processes the data and configurates Datasets
+         * Processes the data and configurates Datasets.
+         * Dataset visibility will be restored from the last time, new datasets will default to be hidden.
          * @param {array} data Array of Datasets
          * @param {array} names Array of names, indexed by id of activity
          * @returns {Array} the datasets configured for chartjs
@@ -55,7 +56,10 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
             return datasets;
         }
 
-
+        /**
+         * Updates the localStorage with the current dataset visibilities.
+         * @param {object} chartjs the Chartjs-Object
+         */
         function updateLocalStorage(chartjs) {
             var data = chartjs.config.data.datasets;
             var visibility = {};
@@ -72,6 +76,7 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
          * @param {array} data Array of Datasets
          * @param {array} labels Array of labels for x-Axis
          * @param {array} names Array of names, indexed by id of activity
+         * @param {int} cid the courseid
          */
         function init(data, labels, names, cid) {
             colors = Colors.createColors();

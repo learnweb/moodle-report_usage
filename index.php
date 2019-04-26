@@ -25,6 +25,7 @@
 require_once("../../config.php");
 require_once("lib.php");
 $id = required_param('id', PARAM_INT); // Course ID.
+$tab = optional_param('tab', 'table-tab', PARAM_ALPHANUMEXT);
 
 $url = new moodle_url('/report/usage/index.php', array('id' => $id));
 
@@ -53,7 +54,6 @@ $end = time();
 if ($course->enddate && $course->enddate < $end) {
     $end = $course->enddate;
 }
-$tab = 'table-tab';
 
 $default = array('startdate' => $start, 'enddate' => $end, 'id' => $id);
 
