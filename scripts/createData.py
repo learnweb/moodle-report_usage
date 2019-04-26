@@ -15,14 +15,14 @@ sql += "(objecttable, objectid, contextid, userid, courseid, amount, daycreated,
 sql += "('resource', '1', ':contextid', ':userid', '2', ':amount', ':day', ':month', ':year')"
 
 users = [2]
-contextids = [26, 28, 29, 30]
+contextids = [26, 37, 40, 41]
 
 days = 100
 for i in range(days):
   for c in contextids:
     for u in users:
       amount = int((pnoise1(i * 0.123, base=u*c) + 1) * 20)
-      if c == 28:
+      if c == 41:
         amount /= 6
       if amount != 0:
         db.query(sql, contextid=c, userid=u, amount=amount, day=time.day, month=time.month, year=time.year)
