@@ -17,17 +17,16 @@
 /**
  * Version details.
  *
- * @package    report
- * @subpackage usage
- * @copyright  Justus Dieckmann <justusdieckmann@wwu.de>
+ * @package    report_usage
+ * @copyright  2019 Justus Dieckmann
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2019042600;// The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2019042700;// The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2018112800;       // Requires this Moodle version
 $plugin->component = 'report_usage'; // Full name of the plugin (used for diagnostics)
 $plugin->dependencies = array(
-    // 'logstore_usage' => ANY_VERSION
+    'logstore_usage' => ANY_VERSION
 );

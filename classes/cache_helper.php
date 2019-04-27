@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Helper class
+ * Helper class for caching
  *
  * @package   report_usage
  * @copyright 2019 Justus Dieckmann
@@ -33,7 +33,7 @@ defined('MOODLE_INTERNAL') || die();
 class cache_helper {
     public static function is_course_activated($courseid) {
         global $CFG;
-        require_once $CFG->libdir . '/moodlelib.php';
+        require_once($CFG->libdir . '/moodlelib.php');
 
         $cache = \cache::make('logstore_usage', 'courses');
         $courses = $cache->get('courses');

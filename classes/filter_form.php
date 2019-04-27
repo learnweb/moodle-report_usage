@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Form to filter the outline report
+ * Form to filter the usage report
  *
- * @package   report_outline
- * @copyright 2017 Davo Smith, Synergy Learning
+ * @package   report_usage
+ * @copyright 2019 Justus Dieckmann
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

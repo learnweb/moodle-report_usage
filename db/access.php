@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * lib
+ * Access permissions for report_usage.
  *
- * @package    report
- * @subpackage usage
- * @copyright  Justus Dieckmann <justusdieckmann@wwu.de>
+ * @package    report_usage
+ * @copyright  2019 Justus Dieckmann
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
