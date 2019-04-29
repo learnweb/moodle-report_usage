@@ -33,6 +33,7 @@ require_once($CFG->libdir.'/formslib.php');
  * @package report_outline
  */
 class filter_form extends \moodleform {
+
     /**
      * Form definition
      * @throws \HTML_QuickForm_Error
@@ -47,7 +48,11 @@ class filter_form extends \moodleform {
         $mform->setType('tab', PARAM_ALPHANUMEXT);
         $mform->setDefault('tab', 'table-tab');
 
-        $opts = ['optional' => false];
+        $opts = array(
+                'optional' => false,
+                'startyear' => $this->_customdata['startyear'],
+                'stopyear' => $this->_customdata['stopyear']
+        );
         $mform->addElement('date_selector', 'startdate', get_string('from'), $opts);
         $mform->addElement('date_selector', 'enddate', get_string('to'), $opts);
 
@@ -77,8 +82,6 @@ class filter_form extends \moodleform {
         if ($data['enddate'] < $data['startdate']) {
             return array('enddate' => get_string('error_endbeforestart', 'report_usage'));
         }
-        if ($data['enddate'] - $data['startdate'] > 366 * 24 * 60 * 60) {
-            return array('enddate' => get_string('error_periodtoolong', 'report_usage'));
-        }
+        return array();
     }
 }

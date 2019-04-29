@@ -40,8 +40,11 @@ require_capability('report/usage:view', $context);
 
 $PAGE->set_title($course->shortname . ': ' . get_string('pluginname', 'report_usage'));
 $PAGE->set_heading($course->fullname);
-
-$mform = new \report_usage\filter_form(new moodle_url('/report/usage/index.php'), null, 'get');
+$customdata = array(
+        'startyear' => date('Y', $course->timecreated),
+        'stopyear' => date('Y')
+);
+$mform = new \report_usage\filter_form(new moodle_url('/report/usage/index.php'), $customdata, 'get');
 if ($mform->is_cancelled()) {
     redirect($url);
 }
