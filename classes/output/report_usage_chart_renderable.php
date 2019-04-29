@@ -59,7 +59,9 @@ class report_usage_chart_renderable implements \renderable {
 
         $records = $DB->get_records_sql($sql, $params);
 
+        // Output[25][6] will give you the amount of views for the activity with the id 25, 6 days after the startdate.
         $output = [];
+        // Put every record in its place in $output.
         foreach ($records as $v) {
             if (!isset($output[$v->contextid])) {
                 $output[$v->contextid] = [];
@@ -71,6 +73,7 @@ class report_usage_chart_renderable implements \renderable {
 
         $names = [];
 
+        // Fill empty cells with 0.
         foreach ($output as $k => $v) {
             for ($i = 0; $i <= $days; $i++) {
                 if (!isset($output[$k][$i])) {

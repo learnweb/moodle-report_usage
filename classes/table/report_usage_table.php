@@ -93,6 +93,7 @@ class report_usage_table extends \flexible_table {
               GROUP BY contextid";
         $maxima = $DB->get_records_sql_menu($sql, $params);
 
+        // Compare maxima from diffenrent activities (To color filename background).
         $biggestmax = 0;
         foreach ($maxima as $m) {
             if (intval($m) > $biggestmax) {
@@ -111,6 +112,7 @@ class report_usage_table extends \flexible_table {
 
         $data = [];
 
+        // Create table from records.
         foreach ($records as $v) {
             if (!isset($data[$v->contextid])) {
                 $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
@@ -128,9 +130,11 @@ class report_usage_table extends \flexible_table {
                 echo $datediff;
             }
             $color = $this->get_color_by_percentage($v->amount / intval($maxima[$v->contextid]));
+            // Because $data[cid][0] is the Filename.
             $data[$v->contextid][$datediff + 1] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
         }
 
+        // Fill empty cells with 0.
         for ($i = 0; $i <= $this->days; $i++) {
             foreach ($data as $k => $v) {
                 if (!isset($data[$k][$i + 1])) {
