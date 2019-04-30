@@ -36,7 +36,7 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
         function processData(data, names) {
             var datasets = [];
 
-            var visibility = JSON.parse(localStorage.getItem('report_usage_visibility_' + courseid));
+            var visibility = JSON.parse(window.localStorage.getItem('report_usage_visibility_' + courseid));
 
             for (var id in data) {
                 var hidden = true;
@@ -68,7 +68,7 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
                 var dataline = data[i];
                 visibility[dataline.objid] = !chartjs.isDatasetVisible(i);
             }
-            localStorage.setItem('report_usage_visibility_' + courseid, JSON.stringify(visibility));
+            window.localStorage.setItem('report_usage_visibility_' + courseid, JSON.stringify(visibility));
         }
 
         /**
