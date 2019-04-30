@@ -26,7 +26,7 @@ namespace report_usage\output;
 
 defined('MOODLE_INTERNAL') || die();
 
-class report_usage_chart_renderable implements \renderable {
+class report_usage_chart {
 
     public $start;
     public $end;
