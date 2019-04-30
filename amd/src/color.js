@@ -24,6 +24,7 @@ define([],
     function() {
 
         /**
+         * Modification from https://stackoverflow.com/a/17243070
          *
          * @param {number} h hue bewteen 0 and 1
          * @param {number} s saturation between 0 and 1
