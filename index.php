@@ -87,11 +87,11 @@ if ($tab && $tab == 'chart-tab') {
 }
 echo $OUTPUT->render_from_template('report_usage/tabs', $mustacheparams);
 
-$renderable = new \report_usage\output\report_usage_chart($start, $end, $id);
-list($data, $names) = $renderable->get_data();
+$chartdata = new \report_usage\output\report_usage_chart($start, $end, $id);
+list($data, $names) = $chartdata->get_data();
 // The warning is weird, we decided it doesn't make sense in this case.
 // Sending data via AJAX wouldn't be more efficient, because you can't cache the data on the client.
-$PAGE->requires->js_call_amd('report_usage/init', 'init', array($data, $renderable->create_labels(), $names, $id));
+$PAGE->requires->js_call_amd('report_usage/init', 'init', array($data, $chartdata->create_labels(), $names, $id));
 $PAGE->requires->js_call_amd('report_usage/tabs', 'init');
 
 echo $OUTPUT->footer();

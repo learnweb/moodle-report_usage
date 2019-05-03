@@ -62,7 +62,7 @@ class report_usage_table extends \flexible_table {
         $dt->setTimestamp($start);
 
         $cols = ['name'];
-        $headers = ["<div style='padding: .5rem'>".get_string('file', 'report_usage')."</div>"];
+        $headers = ["<div style='padding: .5rem'>" . get_string('file', 'report_usage') . "</div>"];
 
         for ($i = 0; $i <= $days; $i++) {
             $cols[] = $dt->format('Y-m-d');
@@ -111,27 +111,34 @@ class report_usage_table extends \flexible_table {
         $records = $DB->get_records_sql($sql, $params);
 
         $data = [];
+        $deletedids = [];
 
         // Create table from records.
         foreach ($records as $v) {
-            if (!isset($data[$v->contextid])) {
-                $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
-                $name = $context->get_context_name(false, true);
-                $link = $context->get_url();
-                $color = $this->get_color_by_percentage(intval($maxima[$v->contextid]) / $biggestmax);
-                $html = "<div style='background-color: $color; padding: .5rem'><a href='$link'>$name</a></div>";
+            if (!in_array($v->contextid, $deletedids)) {
+                if (!isset($data[$v->contextid])) {
+                    $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
+                    if (!$context) {
+                        $deletedids[] = $v->contextid;
+                        continue;
+                    }
+                    $name = $context->get_context_name(false, true);
+                    $link = $context->get_url();
+                    $color = $this->get_color_by_percentage(intval($maxima[$v->contextid]) / $biggestmax);
+                    $html = "<div style='background-color: $color; padding: .5rem'><a href='$link'>$name</a></div>";
 
-                $data[$v->contextid] = [$html];
-            }
+                    $data[$v->contextid] = [$html];
+                }
 
-            $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
-            $datediff = intval($diff->diff($this->startdate, true)->format("%a"));
-            if ($datediff > $this->days) {
-                echo $datediff;
+                $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
+                $datediff = intval($diff->diff($this->startdate, true)->format("%a"));
+                if ($datediff > $this->days) {
+                    echo $datediff;
+                }
+                $color = $this->get_color_by_percentage($v->amount / intval($maxima[$v->contextid]));
+                // Because $data[cid][0] is the Filename.
+                $data[$v->contextid][$datediff + 1] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
             }
-            $color = $this->get_color_by_percentage($v->amount / intval($maxima[$v->contextid]));
-            // Because $data[cid][0] is the Filename.
-            $data[$v->contextid][$datediff + 1] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
         }
 
         // Fill empty cells with 0.
