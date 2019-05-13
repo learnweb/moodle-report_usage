@@ -75,14 +75,18 @@ class report_usage_chart {
 
         // Fill empty cells with 0.
         foreach ($output as $k => $v) {
-            for ($i = 0; $i <= $days; $i++) {
-                if (!isset($output[$k][$i])) {
-                    $output[$k][$i] = 0;
-                }
-            }
             $context = \context::instance_by_id($k, IGNORE_MISSING);
-            $names[$k] = $context->get_context_name(false, true);
-            ksort($output[$k]);
+            if (!$context) {
+                unset($output[$k]);
+            } else {
+                for ($i = 0; $i <= $days; $i++) {
+                    if (!isset($output[$k][$i])) {
+                        $output[$k][$i] = 0;
+                    }
+                }
+                $names[$k] = $context->get_context_name(false, true);
+                ksort($output[$k]);
+            }
         }
 
         return array($output, $names);
