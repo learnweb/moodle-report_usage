@@ -40,9 +40,16 @@ require_capability('report/usage:view', $context);
 
 $PAGE->set_title($course->shortname . ': ' . get_string('pluginname', 'report_usage'));
 $PAGE->set_heading($course->fullname);
+
+$roles = \report_usage\db_helper::get_roles_in_course($context->id);
+
+$roleids = array_keys($roles);
+$rolenames = array_values($roles);
+
 $customdata = array(
-        'startyear' => date('Y', $course->timecreated),
-        'stopyear' => date('Y')
+    'startyear' => date('Y', $course->timecreated),
+    'stopyear' => date('Y'),
+    'roles' => $rolenames
 );
 $mform = new \report_usage\filter_form(new moodle_url('/report/usage/index.php'), $customdata, 'get');
 if ($mform->is_cancelled()) {
@@ -59,13 +66,26 @@ if ($course->enddate && $course->enddate < $end) {
 }
 
 $default = array('startdate' => $start, 'enddate' => $end, 'id' => $id);
+$selectedroles = [];
 
 // Form processing and displaying is done here.
 if ($fromform = $mform->get_data()) {
     $start = $fromform->startdate;
     $end = $fromform->enddate;
     $tab = $fromform->tab;
+    $selectedroles = [];
+    foreach ($fromform->roles as $r) {
+        $selectedroles[] = $roleids[$r];
+    }
 }
+
+// If no or all roles are selected, disable role filtering.
+if (count($selectedroles) == 0 || count($selectedroles) === count($roleids)) {
+    $selectedroles = null;
+}
+
+var_dump(\report_usage\db_helper::get_data_from_course($id, $context->id, $selectedroles, '20190500', '20200000'));
+var_dump(\report_usage\db_helper::get_processed_data_from_course($id, $context->id, $selectedroles, $start, $end));
 // Set default data (if any).
 $mform->set_data($default);
 $mform->display();

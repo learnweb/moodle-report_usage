@@ -55,6 +55,9 @@ class filter_form extends \moodleform {
         );
         $mform->addElement('date_selector', 'startdate', get_string('from'), $opts);
         $mform->addElement('date_selector', 'enddate', get_string('to'), $opts);
+        $rolesselect = $mform->addElement('select', 'roles', 'ROLLEN', $this->_customdata['roles']);
+        $rolesselect->setMultiple(true);
+        $mform->setDefault('roles', array_keys($this->_customdata['roles']));
 
         // Add the filter/cancel buttons (without 'closeHeaderBefore', so they collapse with the filter).
         $buttonarray = [
