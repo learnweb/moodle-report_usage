@@ -18,3 +18,4 @@ $string['pluginname'] = 'Activity analysis';
 $string['file'] = 'File';
 $string['error_endbeforestart'] = 'The end date has to be later than the start date!';
 $string['error_periodtoolong'] = 'The selected period has to be shorter than 1 year!';
+$string['roles'] = 'Roles';

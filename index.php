@@ -41,8 +41,10 @@ require_capability('report/usage:view', $context);
 $PAGE->set_title($course->shortname . ': ' . get_string('pluginname', 'report_usage'));
 $PAGE->set_heading($course->fullname);
 
-$roles = \report_usage\db_helper::get_roles_in_course($context->id);
+$modinfo = get_fast_modinfo($course, -1);
 
+$roles = \report_usage\db_helper::get_roles_in_course($context);
+var_dump(\report_usage\db_helper::get_mods_in_section(1, $id));
 $roleids = array_keys($roles);
 $rolenames = array_values($roles);
 
@@ -84,7 +86,7 @@ if (count($selectedroles) == 0 || count($selectedroles) === count($roleids)) {
     $selectedroles = null;
 }
 
-$data = \report_usage\db_helper::get_processed_data_from_course($id, $context->id, $selectedroles, $start, $end);
+$data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles, $start, $end);
 
 // Set default data (if any).
 $mform->set_data($default);

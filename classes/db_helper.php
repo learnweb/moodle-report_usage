@@ -28,57 +28,99 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class filter_form form to filter the results by date
+ *
  * @package report_outline
  */
 class db_helper {
 
-    public static function get_roles_in_course($coursecontextid) {
+    /**
+     * @param $coursecontext \context_course
+     * @return array
+     * @throws \coding_exception
+     * @throws \dml_exception
+     */
+    public static function get_roles_in_course($coursecontext) {
         global $DB;
 
+        list($contextlist, $cparams) = $DB->get_in_or_equal($coursecontext->get_parent_context_ids(true), SQL_PARAMS_NAMED);
         $sql = "SELECT DISTINCT r.id, r.shortname
                 FROM {role_assignments} ra
                 INNER JOIN {role} r ON r.id = ra.roleid
-                WHERE contextid = ?";
+                WHERE contextid $contextlist";
 
-        return $DB->get_records_sql_menu($sql, array($coursecontextid));
+        return $DB->get_records_sql_menu($sql, $cparams);
     }
 
-    public static function get_data_from_course($courseid, $coursecontextid, $roles, $mindate, $maxdate) {
+    public static function get_mods_in_section($sectionid, $courseid) {
         global $DB;
-        $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
-                FROM {logstore_usage_log} ul ";
+
+        $sql = "SELECT con.id FROM {context} con 
+                JOIN {course_modules} cm
+                ON con.instanceid = cm.id
+                WHERE cm.course = :courseid
+                AND con.contextlevel = 70";
+
+        if($sectionid != null) {
+            $sql .= "AND cm.section = :sectionid";
+        }
+
+        return $DB->get_records_sql($sql, array(
+                'courseid' => $courseid,
+                'sectionid' => $sectionid
+        ));
+    }
+
+    /**
+     * @param $courseid
+     * @param $coursecontext
+     * @param $roles
+     * @param $mindate
+     * @param $maxdate
+     * @return array
+     * @throws \coding_exception
+     * @throws \dml_exception
+     */
+    public static function get_data_from_course($courseid, $coursecontext, $roles, $mindate, $maxdate) {
+        global $DB;
 
         $params = [];
 
+        $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
+                FROM {logstore_usage_log} ul ";
+
         if ($roles != null && count($roles) != 0) {
-            $sql .= "INNER JOIN {context} con
-                    ON ul.courseid = con.instanceid
-                  INNER JOIN (
+            list($conlist, $conparams) =
+                    $DB->get_in_or_equal($coursecontext->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'con');
+
+            $sql .= "INNER JOIN (
                     SELECT userid, MIN(roleid) as roleid
-                    FROM  mdl_role_assignments
+                    FROM  {role_assignments}
+                    WHERE contextid $conlist
                     GROUP BY userid, contextid
                   ) r
                     ON ul.userid = r.userid ";
+
+            $params = array_merge($params, $conparams);
         }
         $sql .= "WHERE courseid = :courseid
                   AND yearcreated * 10000 + monthcreated * 100 + daycreated >= :mindate
                   AND yearcreated * 10000 + monthcreated * 100 + daycreated <= :maxdate ";
 
         if ($roles != null && count($roles) != 0) {
-            list($insql, $params) = $DB->get_in_or_equal($roles, SQL_PARAMS_NAMED);
+            list($rolelist, $roleparams) = $DB->get_in_or_equal($roles, SQL_PARAMS_NAMED, 'role');
+            $sql .= "AND r.roleid $rolelist";
 
-            $sql .= "AND r.roleid $insql
-                     AND con.contextlevel = 50 ";
+            $params = array_merge($params, $roleparams);
         }
 
         $sql .= "GROUP BY ul.contextid, yearcreated, monthcreated, daycreated
                 ORDER BY ul.contextid, yearcreated, monthcreated, daycreated ";
 
         $params = array_merge($params, array(
-            'courseid' => $courseid,
-            'coursecontextid' => $coursecontextid,
-            'mindate' => $mindate,
-            'maxdate' => $maxdate
+                'courseid' => $courseid,
+                'coursecontextid' => $coursecontext->id,
+                'mindate' => $mindate,
+                'maxdate' => $maxdate
         ));
         return $DB->get_records_sql($sql, $params);
     }
@@ -92,7 +134,8 @@ class db_helper {
 
         $days = intval($startdate->diff($enddate)->format('%a'));
 
-        $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $startdate->format("Ymd"), $enddate->format("Ymd"));
+        $records =
+                self::get_data_from_course($courseid, $coursecontextid, $roles, $startdate->format("Ymd"), $enddate->format("Ymd"));
 
         $data = [];
         $deletedids = [];

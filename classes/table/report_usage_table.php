@@ -90,24 +90,13 @@ class report_usage_table extends \flexible_table {
     }
 
     public function init_data() {
-        global $DB;
-
-        $params = array($this->couseid, $this->startdate->format("Ymd"), $this->enddate->format("Ymd"));
-        $sql = "SELECT contextid AS id, MAX(amount)
-                  FROM (
-                      SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
-                        FROM {logstore_usage_log}
-                       WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
-                    GROUP BY contextid, yearcreated, monthcreated, daycreated
-                  ) AS sub
-              GROUP BY contextid";
-        $maxima = $DB->get_records_sql_menu($sql, $params);
-
-        // Compare maxima from diffenrent activities (To color filename background).
+        // Get maxima and biggest maximum.
         $biggestmax = 0;
-        foreach ($maxima as $m) {
-            if (intval($m) > $biggestmax) {
-                $biggestmax = intval($m);
+        $maxima = [];
+        foreach ($this->data as $k => $a) {
+            $maxima[$k] = max($a);
+            if (intval($maxima[$k]) > $biggestmax) {
+                $biggestmax = intval($maxima[$k]);
             }
         }
 
