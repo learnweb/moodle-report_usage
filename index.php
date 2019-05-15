@@ -43,15 +43,14 @@ $PAGE->set_heading($course->fullname);
 
 $modinfo = get_fast_modinfo($course, -1);
 
-$roles = \report_usage\db_helper::get_roles_in_course($context);
-var_dump(\report_usage\db_helper::get_mods_in_section(1, $id));
-$roleids = array_keys($roles);
-$rolenames = array_values($roles);
+list($roleids, $rolenames) = \report_usage\db_helper::get_roles_in_course_for_select($context);
+list($sectionids, $sectionnames) = \report_usage\db_helper::get_sections_in_course_for_select($course->id);
 
 $customdata = array(
-    'startyear' => date('Y', $course->timecreated),
-    'stopyear' => date('Y'),
-    'roles' => $rolenames
+        'startyear' => date('Y', $course->timecreated),
+        'stopyear' => date('Y'),
+        'roles' => $rolenames,
+        'sections' => $sectionnames
 );
 $mform = new \report_usage\filter_form(new moodle_url('/report/usage/index.php'), $customdata, 'get');
 if ($mform->is_cancelled()) {
@@ -69,15 +68,18 @@ if ($course->enddate && $course->enddate < $end) {
 
 $default = array('startdate' => $start, 'enddate' => $end, 'id' => $id);
 $selectedroles = [];
+$selectedsections = [];
 
 // Form processing and displaying is done here.
 if ($fromform = $mform->get_data()) {
     $start = $fromform->startdate;
     $end = $fromform->enddate;
     $tab = $fromform->tab;
-    $selectedroles = [];
     foreach ($fromform->roles as $r) {
         $selectedroles[] = $roleids[$r];
+    }
+    foreach ($fromform->sections as $s) {
+        $selectedsections[] = $sectionids[$s];
     }
 }
 
@@ -86,11 +88,23 @@ if (count($selectedroles) == 0 || count($selectedroles) === count($roleids)) {
     $selectedroles = null;
 }
 
-$data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles, $start, $end);
+// If no or all sections are selected, disable section filtering.
+if (count($selectedsections) == 0 || count($selectedsections) === count($sectionids)) {
+    $selectedsections = null;
+}
+
+$data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles, $selectedsections, $start, $end);
 
 // Set default data (if any).
 $mform->set_data($default);
 $mform->display();
+
+if (count($data) == 0) {
+
+    echo \html_writer::tag('h3', get_string('no-data', 'report_usage'), array('class' => 'center'));
+    echo $OUTPUT->footer();
+    die();
+}
 
 $table = new \report_usage\table\report_usage_table($id, $start, $end, $data);
 $table->define_baseurl($url);

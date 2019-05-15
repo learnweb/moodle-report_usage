@@ -39,7 +39,7 @@ class db_helper {
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function get_roles_in_course($coursecontext) {
+    public static function get_roles_in_course_for_select($coursecontext) {
         global $DB;
 
         list($contextlist, $cparams) = $DB->get_in_or_equal($coursecontext->get_parent_context_ids(true), SQL_PARAMS_NAMED);
@@ -48,10 +48,11 @@ class db_helper {
                 INNER JOIN {role} r ON r.id = ra.roleid
                 WHERE contextid $contextlist";
 
-        return $DB->get_records_sql_menu($sql, $cparams);
+        $result = $DB->get_records_sql_menu($sql, $cparams);
+        return array(array_keys($result), array_values($result));
     }
 
-    public static function get_mods_in_section($sectionid, $courseid) {
+    public static function get_mods_in_sections($sectionids, $courseid) {
         global $DB;
 
         $sql = "SELECT con.id FROM {context} con 
@@ -60,14 +61,34 @@ class db_helper {
                 WHERE cm.course = :courseid
                 AND con.contextlevel = 70";
 
-        if($sectionid != null) {
-            $sql .= "AND cm.section = :sectionid";
+        $params = [];
+
+        if ($sectionids != null && count($sectionids) != 0) {
+            list($sectionlist, $params) = $DB->get_in_or_equal($sectionids, SQL_PARAMS_NAMED);
+            $sql .= "AND cm.section $sectionlist";
         }
 
-        return $DB->get_records_sql($sql, array(
-                'courseid' => $courseid,
-                'sectionid' => $sectionid
-        ));
+        $params['courseid'] = $courseid;
+
+        return array_keys($DB->get_records_sql_menu($sql, $params));
+
+    }
+
+    public static function get_sections_in_course_for_select($courseid) {
+        $modinfo = get_fast_modinfo($courseid);
+
+        $sections = [];
+        $sectionids = [];
+
+        foreach ($modinfo->get_section_info_all() as $sectioninfo) {
+            $name = $sectioninfo->name;
+            if ($name == null) {
+                $name = '[' . get_string('section', 'report_usage') . ' ' . $sectioninfo->section . ']';
+            }
+            $sections[] = $name;
+            $sectionids[] = $sectioninfo->section;
+        }
+        return array($sectionids, $sections);
     }
 
     /**
@@ -80,7 +101,7 @@ class db_helper {
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function get_data_from_course($courseid, $coursecontext, $roles, $mindate, $maxdate) {
+    public static function get_data_from_course($courseid, $coursecontext, $roles, $sections, $mindate, $maxdate) {
         global $DB;
 
         $params = [];
@@ -113,6 +134,16 @@ class db_helper {
             $params = array_merge($params, $roleparams);
         }
 
+        $mods = self::get_mods_in_sections($sections, $courseid);
+        if(count($mods) == 0) {
+            // No results when filtering for empty section.
+            return array();
+        }
+
+        list($modlist, $modparams) = $DB->get_in_or_equal($mods, SQL_PARAMS_NAMED, 'mod');
+        $sql .= "AND ul.contextid $modlist";
+        $params = array_merge($params, $modparams);
+
         $sql .= "GROUP BY ul.contextid, yearcreated, monthcreated, daycreated
                 ORDER BY ul.contextid, yearcreated, monthcreated, daycreated ";
 
@@ -125,7 +156,8 @@ class db_helper {
         return $DB->get_records_sql($sql, $params);
     }
 
-    public static function get_processed_data_from_course($courseid, $coursecontextid, $roles, $mindatestamp, $maxdatestamp) {
+    public static function get_processed_data_from_course($courseid, $coursecontextid, $roles, $sections, $mindatestamp,
+            $maxdatestamp) {
         $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
         $startdate->setTimestamp($mindatestamp);
 
@@ -134,8 +166,8 @@ class db_helper {
 
         $days = intval($startdate->diff($enddate)->format('%a'));
 
-        $records =
-                self::get_data_from_course($courseid, $coursecontextid, $roles, $startdate->format("Ymd"), $enddate->format("Ymd"));
+        $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections,
+                $startdate->format("Ymd"), $enddate->format("Ymd"));
 
         $data = [];
         $deletedids = [];
