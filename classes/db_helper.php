@@ -89,7 +89,45 @@ class db_helper {
 
         $enddate = new \DateTime("now", \core_date::get_server_timezone_object());
         $enddate->setTimestamp($maxdatestamp);
-        $data = self::get_data_from_course($courseid, $coursecontextid, $roles, $startdate->format("Ymd"), $enddate->format("Ymd"));
+
+        $days = intval($startdate->diff($enddate)->format('%a'));
+
+        $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $startdate->format("Ymd"), $enddate->format("Ymd"));
+
+        $data = [];
+        $deletedids = [];
+
+        // Create table from records.
+        foreach ($records as $v) {
+            if (!in_array($v->contextid, $deletedids)) {
+                if (!isset($data[$v->contextid])) {
+                    $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
+                    if (!$context) {
+                        $deletedids[] = $v->contextid;
+                        continue;
+                    }
+                    $data[$v->contextid] = [];
+                }
+
+                $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
+                $datediff = intval($diff->diff($startdate, true)->format("%a"));
+                $data[$v->contextid][$datediff] = $v->amount;
+            }
+        }
+
+        // Fill empty cells with 0.
+        for ($i = 0; $i <= $days; $i++) {
+            foreach ($data as $k => $v) {
+                if (!isset($data[$k][$i])) {
+                    $data[$k][$i] = 0;
+                }
+            }
+        }
+
+        foreach ($data as &$row) {
+            ksort($row);
+        }
+        return $data;
     }
 
 }

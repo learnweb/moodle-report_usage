@@ -33,14 +33,24 @@ require_once($CFG->libdir . '/tablelib.php');
 class report_usage_table extends \flexible_table {
 
     private $couseid;
-
-    private $days;
     private $startdate;
     private $enddate;
+    private $days;
+    private $data;
 
-
-    public function __construct($courseid, $start, $end) {
+    /**
+     * report_usage_table constructor.
+     *
+     * @param $courseid {int}
+     * @param $start {int} timestamp
+     * @param $end {int} timestamp
+     * @param $data {array} as returned by db_helper::get_processed_data_from_course()
+     * @throws \coding_exception
+     */
+    public function __construct($courseid, $start, $end, $data) {
         parent::__construct("report_usage_" . $courseid);
+
+        $this->couseid = $courseid;
 
         $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
         $startdate->setTimestamp($start);
@@ -53,10 +63,10 @@ class report_usage_table extends \flexible_table {
         $days = intval($startdate->diff($enddate)->format('%a'));
         $this->days = $days;
 
+        $this->data = $data;
+
         $this->set_attribute('class', 'generaltable generalbox');
         $this->show_download_buttons_at(array(TABLE_P_BOTTOM));
-
-        $this->couseid = $courseid;
 
         $dt = new \DateTime("now", \core_date::get_server_timezone_object());
         $dt->setTimestamp($start);
@@ -101,59 +111,20 @@ class report_usage_table extends \flexible_table {
             }
         }
 
-        $sql = "SELECT MIN(id) AS id, contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
-                  FROM {logstore_usage_log}
-                 WHERE courseid = ? AND yearcreated * 10000 + monthcreated * 100 + daycreated >= ?
-                       AND yearcreated * 10000 + monthcreated * 100 + daycreated <= ?
-              GROUP BY contextid, yearcreated, monthcreated, daycreated
-              ORDER BY contextid, yearcreated, monthcreated, daycreated";
-
-        $records = $DB->get_records_sql($sql, $params);
-
-        $data = [];
-        $deletedids = [];
-
         // Create table from records.
-        foreach ($records as $v) {
-            if (!in_array($v->contextid, $deletedids)) {
-                if (!isset($data[$v->contextid])) {
-                    $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
-                    if (!$context) {
-                        $deletedids[] = $v->contextid;
-                        continue;
-                    }
-                    $name = $context->get_context_name(false, true);
-                    $link = $context->get_url();
-                    $color = $this->get_color_by_percentage(intval($maxima[$v->contextid]) / $biggestmax);
-                    $html = "<div style='background-color: $color; padding: .5rem'><a href='$link'>$name</a></div>";
+        foreach ($this->data as $k => $a) {
+            $context = \context::instance_by_id($k, IGNORE_MISSING);
+            $name = $context->get_context_name(false, true);
+            $link = $context->get_url();
+            $color = $this->get_color_by_percentage(intval($maxima[$k]) / $biggestmax);
+            $html = "<div style='background-color: $color; padding: .5rem'><a href='$link'>$name</a></div>";
+            $moddata = [$html];
 
-                    $data[$v->contextid] = [$html];
-                }
-
-                $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
-                $datediff = intval($diff->diff($this->startdate, true)->format("%a"));
-                if ($datediff > $this->days) {
-                    echo $datediff;
-                }
-                $color = $this->get_color_by_percentage($v->amount / intval($maxima[$v->contextid]));
-                // Because $data[cid][0] is the Filename.
-                $data[$v->contextid][$datediff + 1] = "<div style='background-color: $color; padding: .5rem'>$v->amount</div>";
+            foreach($a as $amount) {
+                $color = $this->get_color_by_percentage($amount / intval($maxima[$k]));
+                $moddata[] = "<div style='background-color: $color; padding: .5rem'>$amount</div>";
             }
-        }
-
-        // Fill empty cells with 0.
-        for ($i = 0; $i <= $this->days; $i++) {
-            foreach ($data as $k => $v) {
-                if (!isset($data[$k][$i + 1])) {
-                    $color = $this->get_color_by_percentage(0);
-                    $data[$k][$i + 1] = "<div style='background-color: $color; padding: .5rem'>0</div>";;
-                }
-            }
-        }
-
-        foreach ($data as $row) {
-            ksort($row);
-            $this->add_data($row);
+            $this->add_data($moddata);
         }
     }
 
