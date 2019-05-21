@@ -100,7 +100,6 @@ class report_usage_table extends \flexible_table {
             }
         }
 
-        $oldSection = -1;
         $modinfo = get_fast_modinfo($this->courseid, -1);
         $databysection = [];
 

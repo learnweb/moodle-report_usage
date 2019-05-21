@@ -55,7 +55,7 @@ class db_helper {
     public static function get_mods_in_sections($sectionids, $courseid) {
         global $DB;
 
-        $sql = "SELECT con.id FROM {context} con 
+        $sql = "SELECT con.id FROM {context} con
                 JOIN {course_modules} cm
                 ON con.instanceid = cm.id
                 WHERE cm.course = :courseid
@@ -135,7 +135,7 @@ class db_helper {
         }
 
         $mods = self::get_mods_in_sections($sections, $courseid);
-        if(count($mods) == 0) {
+        if (count($mods) == 0) {
             // No results when filtering for empty section.
             return array();
         }
@@ -173,7 +173,6 @@ class db_helper {
         $deletedids = [];
 
         $modinfo = get_fast_modinfo($courseid, -1);
-
 
         // Create table from records.
         foreach ($records as $v) {
