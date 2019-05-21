@@ -132,9 +132,9 @@ class report_usage_table extends \flexible_table {
             if ($name == null) {
                 $name = get_string('topic') . ' ' . $sectioninfo->section;
             }
-            $sectionheader =
-            array_merge(["<div style='padding: 0.25rem; font-weight: 300'>$name</div>"], array_fill(1, $this->days + 1, ""));
-            $this->add_data($sectionheader, 'tollerclassname');
+            $sectionheader = array_merge(["<div style='padding: 0.25rem; font-weight: 300'>$name</div>"],
+                    array_fill(1, $this->days + 1, ""));
+            $this->add_data($sectionheader, 'report_usage-row');
 
             foreach ($m as $d) {
                 $this->add_data($d);
