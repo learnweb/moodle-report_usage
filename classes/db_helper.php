@@ -141,7 +141,7 @@ class db_helper {
         }
 
         list($modlist, $modparams) = $DB->get_in_or_equal($mods, SQL_PARAMS_NAMED, 'mod');
-        $sql .= "AND ul.contextid $modlist";
+        $sql .= "AND ul.contextid $modlist ";
         $params = array_merge($params, $modparams);
 
         $sql .= "GROUP BY ul.contextid, yearcreated, monthcreated, daycreated
@@ -171,6 +171,9 @@ class db_helper {
 
         $data = [];
         $deletedids = [];
+
+        $modinfo = get_fast_modinfo($courseid, -1);
+
 
         // Create table from records.
         foreach ($records as $v) {

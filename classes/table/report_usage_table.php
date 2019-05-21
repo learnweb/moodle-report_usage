@@ -32,7 +32,7 @@ require_once($CFG->libdir . '/tablelib.php');
 
 class report_usage_table extends \flexible_table {
 
-    private $couseid;
+    private $courseid;
     private $startdate;
     private $enddate;
     private $days;
@@ -50,7 +50,7 @@ class report_usage_table extends \flexible_table {
     public function __construct($courseid, $start, $end, $data) {
         parent::__construct("report_usage_" . $courseid);
 
-        $this->couseid = $courseid;
+        $this->courseid = $courseid;
 
         $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
         $startdate->setTimestamp($start);
@@ -100,20 +100,45 @@ class report_usage_table extends \flexible_table {
             }
         }
 
+        $oldSection = -1;
+        $modinfo = get_fast_modinfo($this->courseid, -1);
+        $databysection = [];
+
         // Create table from records.
         foreach ($this->data as $k => $a) {
             $context = \context::instance_by_id($k, IGNORE_MISSING);
+            $section = $modinfo->get_cm($context->instanceid)->sectionnum;
+
             $name = $context->get_context_name(false, true);
             $link = $context->get_url();
             $color = $this->get_color_by_percentage(intval($maxima[$k]) / $biggestmax);
-            $html = "<div style='background-color: $color; padding: .5rem'><a href='$link'>$name</a></div>";
+            $html = "<div style='background-color: $color; padding:  0.5rem 0.5rem 0.5rem 1rem'><a href='$link'>$name</a></div>";
             $moddata = [$html];
 
-            foreach($a as $amount) {
+            foreach ($a as $amount) {
                 $color = $this->get_color_by_percentage($amount / intval($maxima[$k]));
                 $moddata[] = "<div style='background-color: $color; padding: .5rem'>$amount</div>";
             }
-            $this->add_data($moddata);
+            if (!isset($databysection[$section])) {
+                $databysection[$section] = [];
+            }
+            $databysection[$section][] = $moddata;
+        }
+        ksort($databysection);
+
+        foreach ($databysection as $s => $m) {
+            $sectioninfo = $modinfo->get_section_info($s);
+            $name = $sectioninfo->name;
+            if ($name == null) {
+                $name = get_string('topic') . ' ' . $sectioninfo->section;
+            }
+            $sectionheader =
+            array_merge(["<div style='padding: 0.25rem; font-weight: 300'>$name</div>"], array_fill(1, $this->days + 1, ""));
+            $this->add_data($sectionheader, 'tollerclassname');
+
+            foreach ($m as $d) {
+                $this->add_data($d);
+            }
         }
     }
 
