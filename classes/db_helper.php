@@ -83,10 +83,10 @@ class db_helper {
         foreach ($modinfo->get_section_info_all() as $sectioninfo) {
             $name = $sectioninfo->name;
             if ($name == null) {
-                $name = '[' . get_string('section', 'report_usage') . ' ' . $sectioninfo->section . ']';
+                $name = get_string('topic') . ' ' . $sectioninfo->section;
             }
             $sections[] = $name;
-            $sectionids[] = $sectioninfo->section;
+            $sectionids[] = $sectioninfo->id;
         }
         return array($sectionids, $sections);
     }
