@@ -118,7 +118,7 @@ if ($sections != null && count($sections) !== 0 && count($sections) !== count($s
 
 $data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles, $selectedsections, $start, $end);
 
-$table = new \report_usage\table\report_usage_table($id, $start, $end, $data);
+$table = new \report_usage\table\report_usage_table($id, $start, $end, $data, $logformat !== '');
 
 $table->define_baseurl($url);
 $table->is_downloadable(true);

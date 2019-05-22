@@ -47,7 +47,7 @@ class report_usage_table extends \flexible_table {
      * @param $data {array} as returned by db_helper::get_processed_data_from_course()
      * @throws \coding_exception
      */
-    public function __construct($courseid, $start, $end, $data) {
+    public function __construct($courseid, $start, $end, $data, $downloading) {
         parent::__construct("report_usage_" . $courseid);
 
         $this->courseid = $courseid;
@@ -72,7 +72,7 @@ class report_usage_table extends \flexible_table {
         $dt->setTimestamp($start);
 
         $cols = ['name'];
-        if (!!$this->is_downloading()) {
+        if (!$downloading) {
             $headers = ["<div style='padding: .5rem'>" . get_string('file', 'report_usage') . "</div>"];
         } else {
             $headers = [get_string('file', 'report_usage')];
@@ -81,7 +81,7 @@ class report_usage_table extends \flexible_table {
         for ($i = 0; $i <= $days; $i++) {
             $cols[] = $dt->format('Y-m-d');
             $name = $dt->format('d.m');
-            if (!!$this->is_downloading()) {
+            if (!$downloading) {
                 $headers[] = "<div style='padding: .5rem'>$name</div>";
             } else {
                 $headers[] = "$name";
