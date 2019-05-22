@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class util {
 
-    static function make_array_params($name, $array) {
+    public static function make_array_params($name, $array) {
         $params = [];
         foreach ($array as $k => $v) {
             $params[$name . "[$k]"] = $v;

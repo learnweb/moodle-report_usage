@@ -56,11 +56,13 @@ class filter_form extends \moodleform {
         $mform->addElement('date_selector', 'startdate', get_string('from'), $opts);
         $mform->addElement('date_selector', 'enddate', get_string('to'), $opts);
 
-        $rolesselect = $mform->addElement('select', 'roles', get_string('roles', 'report_usage'), $this->_customdata['roles']);
+        $rolesselect = $mform->addElement('select', 'roles', get_string('roles', 'report_usage'),
+                $this->_customdata['roles']);
         $rolesselect->setMultiple(true);
         $mform->setDefault('roles', array_keys($this->_customdata['roles']));
 
-        $sectionsselect = $mform->addElement('select', 'sections', get_string('sections', 'report_usage'), $this->_customdata['sections']);
+        $sectionsselect = $mform->addElement('select', 'sections', get_string('sections', 'report_usage'),
+                $this->_customdata['sections']);
         $sectionsselect->setMultiple(true);
         $mform->setType('sections', PARAM_SEQUENCE);
         $mform->setDefault('sections', array_keys($this->_customdata['sections']));

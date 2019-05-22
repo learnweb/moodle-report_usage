@@ -78,7 +78,6 @@ class report_usage_table extends \flexible_table {
             $headers = [get_string('file', 'report_usage')];
         }
 
-
         for ($i = 0; $i <= $days; $i++) {
             $cols[] = $dt->format('Y-m-d');
             $name = $dt->format('d.m');
@@ -151,7 +150,6 @@ class report_usage_table extends \flexible_table {
                 $this->add_data($sectionheader, 'report_usage-row');
             }
             foreach ($m as $d) {
-                if(count($d) > 0)
                 $this->add_data($d);
             }
         }
