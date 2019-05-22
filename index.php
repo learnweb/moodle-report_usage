@@ -22,10 +22,20 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use report_usage\util;
+
 require_once(__DIR__ . '/../../config.php');
 require_once(__DIR__ . '/lib.php');
 $id = required_param('id', PARAM_INT); // Course ID.
 $tab = optional_param('tab', 'table-tab', PARAM_ALPHANUMEXT);
+$logformat = optional_param('download', '', PARAM_ALPHA);
+$startdate = optional_param_array('startdate', null, PARAM_INT);
+$enddate = optional_param_array('enddate', null, PARAM_INT);
+$roles = optional_param_array('roles', null, PARAM_INT);
+$sections = optional_param_array('sections', null, PARAM_SEQUENCE);
+
+$params = [];
+$params['id'] = $id;
 
 $url = new moodle_url('/report/usage/index.php', array('id' => $id));
 
@@ -35,6 +45,35 @@ $PAGE->set_pagelayout('report');
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 require_login($course);
 $context = context_course::instance($course->id);
+
+if ($logformat !== '') {
+    $params['download'] = $logformat;
+}
+
+$start = $course->startdate;
+$end = time();
+if ($course->enddate && $course->enddate < $end) {
+    $end = $course->enddate;
+}
+
+if ($startdate && !empty($startdate)) {
+    $params = array_merge($params, util::make_array_params('startdate', $startdate));
+    $startdate = new DateTime($startdate['year'] . '/' . $startdate['month'] . '/' . $startdate['day'],
+            \core_date::get_server_timezone_object());
+    $start = $startdate->getTimestamp();
+}
+if ($enddate && !empty($enddate)) {
+    $params = array_merge($params, util::make_array_params('enddate', $enddate));
+    $enddate = new DateTime($enddate['year'] . '/' . $enddate['month'] . '/' . $enddate['day'],
+            \core_date::get_server_timezone_object());
+    $end = $enddate->getTimestamp();
+}
+if ($roles && !empty($roles)) {
+    $params = array_merge($params, util::make_array_params('roles', $roles));
+}
+if ($sections && !empty($sections)) {
+    $params = array_merge($params, util::make_array_params('sections', $sections));
+}
 
 require_capability('report/usage:view', $context);
 
@@ -56,58 +95,54 @@ $mform = new \report_usage\filter_form(new moodle_url('/report/usage/index.php')
 if ($mform->is_cancelled()) {
     redirect($url);
 }
-
-echo $OUTPUT->header();
-echo $OUTPUT->heading($course->fullname . ': ' . get_string('pluginname', 'report_usage'));
-
-$start = $course->startdate;
-$end = time();
-if ($course->enddate && $course->enddate < $end) {
-    $end = $course->enddate;
-}
+$url->params($params);
 
 $default = array('startdate' => $start, 'enddate' => $end, 'id' => $id);
-$selectedroles = [];
-$selectedsections = [];
 
-// Form processing and displaying is done here.
-if ($fromform = $mform->get_data()) {
-    $start = $fromform->startdate;
-    $end = $fromform->enddate;
-    $tab = $fromform->tab;
-    foreach ($fromform->roles as $r) {
+
+$selectedroles = null;
+// If no or all roles are selected, disable role filtering.
+if ($roles != null && count($roles) !== 0 && count($roles) !== count($roleids)) {
+    foreach ($roles as $r) {
         $selectedroles[] = $roleids[$r];
     }
-    foreach ($fromform->sections as $s) {
+}
+
+$selectedsections = null;
+// If no or all sections are selected, disable section filtering.
+if ($sections != null && count($sections) !== 0 && count($sections) !== count($sectionids)) {
+    foreach ($sections as $s) {
         $selectedsections[] = $sectionids[$s];
     }
 }
 
-// If no or all roles are selected, disable role filtering.
-if (count($selectedroles) == 0 || count($selectedroles) === count($roleids)) {
-    $selectedroles = null;
-}
-
-// If no or all sections are selected, disable section filtering.
-if (count($selectedsections) == 0 || count($selectedsections) === count($sectionids)) {
-    $selectedsections = null;
-}
-
 $data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles, $selectedsections, $start, $end);
+
+$table = new \report_usage\table\report_usage_table($id, $start, $end, $data);
+
+$table->define_baseurl($url);
+$table->is_downloadable(true);
+$table->show_download_buttons_at(array(TABLE_P_BOTTOM));
+
+if ($logformat !== '') {
+    $table->is_downloading($logformat, 'name');
+    $table->setup();
+    $table->init_data();
+    die();
+}
+
+echo $OUTPUT->header();
+echo $OUTPUT->heading($course->fullname . ': ' . get_string('pluginname', 'report_usage'));
 
 // Set default data (if any).
 $mform->set_data($default);
 $mform->display();
 
 if (count($data) == 0) {
-
     echo \html_writer::tag('h3', get_string('no-data', 'report_usage'), array('class' => 'center'));
     echo $OUTPUT->footer();
     die();
 }
-
-$table = new \report_usage\table\report_usage_table($id, $start, $end, $data);
-$table->define_baseurl($url);
 
 ob_start();
 $table->setup();

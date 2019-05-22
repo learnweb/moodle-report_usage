@@ -62,6 +62,7 @@ class filter_form extends \moodleform {
 
         $sectionsselect = $mform->addElement('select', 'sections', get_string('sections', 'report_usage'), $this->_customdata['sections']);
         $sectionsselect->setMultiple(true);
+        $mform->setType('sections', PARAM_SEQUENCE);
         $mform->setDefault('sections', array_keys($this->_customdata['sections']));
 
         // Add the filter/cancel buttons (without 'closeHeaderBefore', so they collapse with the filter).

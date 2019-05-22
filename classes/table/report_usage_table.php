@@ -72,18 +72,28 @@ class report_usage_table extends \flexible_table {
         $dt->setTimestamp($start);
 
         $cols = ['name'];
-        $headers = ["<div style='padding: .5rem'>" . get_string('file', 'report_usage') . "</div>"];
+        if (!!$this->is_downloading()) {
+            $headers = ["<div style='padding: .5rem'>" . get_string('file', 'report_usage') . "</div>"];
+        } else {
+            $headers = [get_string('file', 'report_usage')];
+        }
+
 
         for ($i = 0; $i <= $days; $i++) {
             $cols[] = $dt->format('Y-m-d');
             $name = $dt->format('d.m');
-            $headers[] = "<div style='padding: .5rem'>$name</div>";
+            if (!!$this->is_downloading()) {
+                $headers[] = "<div style='padding: .5rem'>$name</div>";
+            } else {
+                $headers[] = "$name";
+            }
+
             $dt->add(new \DateInterval("P1D"));
         }
 
         $this->define_columns($cols);
         $this->define_headers($headers);
-        $this->is_downloadable(true);
+        $this->pageable(false);
 
         $this->column_style_all('padding', '0');
         $this->column_style_all('white-space', 'nowrap');
@@ -112,11 +122,15 @@ class report_usage_table extends \flexible_table {
             $link = $context->get_url();
             $color = $this->get_color_by_percentage(intval($maxima[$k]) / $biggestmax);
             $html = "<div style='background-color: $color; padding:  0.5rem 0.5rem 0.5rem 1rem'><a href='$link'>$name</a></div>";
-            $moddata = [$html];
+            $moddata = [$this->is_downloading() ? $name : $html];
 
             foreach ($a as $amount) {
                 $color = $this->get_color_by_percentage($amount / intval($maxima[$k]));
-                $moddata[] = "<div style='background-color: $color; padding: .5rem'>$amount</div>";
+                if (!$this->is_downloading()) {
+                    $moddata[] = "<div style='background-color: $color; padding: .5rem'>$amount</div>";
+                } else {
+                    $moddata[] = $amount;
+                }
             }
             if (!isset($databysection[$section])) {
                 $databysection[$section] = [];
@@ -126,16 +140,18 @@ class report_usage_table extends \flexible_table {
         ksort($databysection);
 
         foreach ($databysection as $s => $m) {
-            $sectioninfo = $modinfo->get_section_info($s);
-            $name = $sectioninfo->name;
-            if ($name == null) {
-                $name = get_string('topic') . ' ' . $sectioninfo->section;
+            if (!$this->is_downloading()) {
+                $sectioninfo = $modinfo->get_section_info($s);
+                $name = $sectioninfo->name;
+                if ($name == null) {
+                    $name = get_string('topic') . ' ' . $sectioninfo->section;
+                }
+                $sectionheader = array_merge(["<div style='padding: 0.25rem; font-weight: 300'>$name</div>"],
+                        array_fill(1, $this->days + 1, ""));
+                $this->add_data($sectionheader, 'report_usage-row');
             }
-            $sectionheader = array_merge(["<div style='padding: 0.25rem; font-weight: 300'>$name</div>"],
-                    array_fill(1, $this->days + 1, ""));
-            $this->add_data($sectionheader, 'report_usage-row');
-
             foreach ($m as $d) {
+                if(count($d) > 0)
                 $this->add_data($d);
             }
         }
