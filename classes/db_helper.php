@@ -174,8 +174,9 @@ class db_helper {
 
         // Create table from records.
         foreach ($records as $v) {
-            if (in_array($v->contextid, $deletedids))
+            if (in_array($v->contextid, $deletedids)) {
                 continue;
+            }
 
             if (!isset($data[$v->contextid])) {
                 $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
