@@ -97,17 +97,25 @@ class db_helper {
      * @param $roles
      * @param $mindate
      * @param $maxdate
+     * @param $uniqueusers
      * @return array
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function get_data_from_course($courseid, $coursecontext, $roles, $sections, $mindate, $maxdate) {
+    public static function get_data_from_course($courseid, $coursecontext, $roles, $sections,
+                                                $mindate, $maxdate, $uniqueusers = false) {
         global $DB;
 
         $params = [];
 
-        $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
+        if ($uniqueusers) {
+            $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, COUNT(amount) AS amount
                 FROM {logstore_usage_log} ul ";
+        } else {
+            $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
+                FROM {logstore_usage_log} ul ";
+
+        }
 
         if ($roles != null && count($roles) != 0) {
             list($conlist, $conparams) =
