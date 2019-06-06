@@ -168,6 +168,7 @@ class db_helper {
 
         $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections,
                 $startdate->format("Ymd"), $enddate->format("Ymd"));
+        $modinfo = get_fast_modinfo($courseid, -1);
 
         $data = [];
         $deletedids = [];
@@ -181,6 +182,14 @@ class db_helper {
             if (!isset($data[$v->contextid])) {
                 $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
                 if (!$context) {
+                    $deletedids[] = $v->contextid;
+                    continue;
+                }
+                // Also delete contexts that have no associated course module anymore.
+                // Probably a bug, but this has happened with mod_hvp.
+                try {
+                    $modinfo->get_cm($context->instanceid);
+                } catch (\moodle_exception $e) {
                     $deletedids[] = $v->contextid;
                     continue;
                 }
