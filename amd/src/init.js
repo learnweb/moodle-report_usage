@@ -82,24 +82,28 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
             colors = Colors.createColors();
             courseid = cid;
 
-            var ctx = document.getElementById('report_usage_chart').getContext('2d');
+            var canvas = $('#report_usage_chart');
+            var ctx = canvas.get(0).getContext('2d');
             var chartjs = new Chartjs(ctx, {
-                // The type of chart we want to create
+                // The type of chart we want to create.
                 type: 'line',
-
-                // The data for our dataset
+                // The data for our dataset.
                 data: {
                     labels: labels,
                     datasets: processData(data, names)
                 },
-                // Configuration options go here
+                // Configuration options go here.
                 options: {
                     onClick: function() {
                         setTimeout(updateLocalStorage, 200, chartjs);
-
-                    }
+                    },
+                    maintainAspectRatio: false
                 }
             });
+            // Make chart area (without legend) 400px high.
+            canvas.height = chartjs.legend.bottom + 400;
+            canvas.css('height', canvas.height + 'px');
+            chartjs.resize();
         }
 
         return {
