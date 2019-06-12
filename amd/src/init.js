@@ -97,13 +97,18 @@ define(['jquery', 'core/chartjs', 'report_usage/color'],
                     onClick: function() {
                         setTimeout(updateLocalStorage, 200, chartjs);
                     },
+                    onResize: function() {
+                        // Timeout because this has to be after the resize, so that chartjs.legend.bottom is up to date.
+                        setTimeout(function() {
+                            canvas.height = chartjs.legend.bottom + 400;
+                            canvas.css('height', canvas.height + 'px');
+                        }, 20);
+                    },
                     maintainAspectRatio: false
                 }
             });
-            // Make chart area (without legend) 400px high.
             canvas.height = chartjs.legend.bottom + 400;
             canvas.css('height', canvas.height + 'px');
-            chartjs.resize();
         }
 
         return {
