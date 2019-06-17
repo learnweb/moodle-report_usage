@@ -176,7 +176,6 @@ class db_helper {
 
         $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections,
                 $startdate->format("Ymd"), $enddate->format("Ymd"), $uniqueusers);
-                $startdate->format("Ymd"), $enddate->format("Ymd"));
         $modinfo = get_fast_modinfo($courseid, -1);
 
         $data = [];
