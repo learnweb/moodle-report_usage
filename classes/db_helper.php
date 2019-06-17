@@ -165,7 +165,7 @@ class db_helper {
     }
 
     public static function get_processed_data_from_course($courseid, $coursecontextid, $roles, $sections, $mindatestamp,
-            $maxdatestamp) {
+            $maxdatestamp, $uniqueusers = false) {
         $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
         $startdate->setTimestamp($mindatestamp);
 
@@ -175,6 +175,7 @@ class db_helper {
         $days = intval($startdate->diff($enddate)->format('%a'));
 
         $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections,
+                $startdate->format("Ymd"), $enddate->format("Ymd"), $uniqueusers);
                 $startdate->format("Ymd"), $enddate->format("Ymd"));
         $modinfo = get_fast_modinfo($courseid, -1);
 

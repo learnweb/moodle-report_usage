@@ -117,7 +117,8 @@ if ($sections != null && count($sections) !== 0 && count($sections) !== count($s
     }
 }
 
-$data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles, $selectedsections, $start, $end);
+$data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles,
+            $selectedsections, $start, $end, $uniqueusers);
 
 $table = new \report_usage\table\report_usage_table($id, $start, $end, $data, $logformat !== '');
 
