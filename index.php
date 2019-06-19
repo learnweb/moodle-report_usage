@@ -33,7 +33,8 @@ $uniqueusers = (bool) optional_param('uniqueusers', false, PARAM_BOOL);
 $startdate = optional_param_array('startdate', null, PARAM_INT);
 $enddate = optional_param_array('enddate', null, PARAM_INT);
 $roles = optional_param_array('roles', null, PARAM_INT);
-$sections = optional_param_array('sections', null, PARAM_SEQUENCE);
+$sections = optional_param_array('sections', null, PARAM_INT);
+$gradecats = optional_param_array('gc', null, PARAM_INT);
 
 $params = [];
 $params['id'] = $id;
@@ -75,6 +76,9 @@ if ($roles && !empty($roles)) {
 if ($sections && !empty($sections)) {
     $params = array_merge($params, util::make_array_params('sections', $sections));
 }
+if ($gradecats && !empty($gradecats)) {
+    $params = array_merge($params, util::make_array_params('gc', $gradecats));
+}
 
 require_capability('report/usage:view', $context);
 
@@ -85,12 +89,14 @@ $modinfo = get_fast_modinfo($course, -1);
 
 list($roleids, $rolenames) = \report_usage\db_helper::get_roles_in_course_for_select($context);
 list($sectionids, $sectionnames) = \report_usage\db_helper::get_sections_in_course_for_select($course->id);
+list($gradecatids, $gradecatnames) = \report_usage\db_helper::get_gradecategories_in_course_for_select($course->id);
 
 $customdata = array(
         'startyear' => date('Y', $course->timecreated),
         'stopyear' => date('Y'),
         'roles' => $rolenames,
-        'sections' => $sectionnames
+        'sections' => $sectionnames,
+        'gc' => $gradecatnames
 );
 $mform = new \report_usage\filter_form(new moodle_url('/report/usage/index.php'), $customdata, 'get');
 if ($mform->is_cancelled()) {
@@ -117,8 +123,15 @@ if ($sections != null && count($sections) !== 0 && count($sections) !== count($s
     }
 }
 
+$selectedgradecats = null;
+// If no or all sections are selected, disable section filtering.
+if ($gradecats != null && count($gradecats) !== 0 && count($gradecats) !== count($gradecatids)) {
+    foreach ($gradecats as $gc) {
+        $selectedgradecats[] = $gradecatids[$gc];
+    }
+}
 $data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles,
-            $selectedsections, $start, $end, $uniqueusers);
+            $selectedsections, $selectedgradecats, $start, $end, $uniqueusers);
 
 $table = new \report_usage\table\report_usage_table($id, $start, $end, $data, $logformat !== '');
 
