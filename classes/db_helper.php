@@ -91,65 +91,62 @@ class db_helper {
         return array_keys($DB->get_records_sql($sql, $params));
     }
 
-public
-static function get_sections_in_course_for_select($courseid) {
-    $modinfo = get_fast_modinfo($courseid);
+    public static function get_sections_in_course_for_select($courseid) {
+        $modinfo = get_fast_modinfo($courseid);
 
-    $sections = [];
-    $sectionids = [];
+        $sections = [];
+        $sectionids = [];
 
-    foreach ($modinfo->get_section_info_all() as $sectioninfo) {
-        $name = $sectioninfo->name;
-        if ($name == null) {
-            $name = get_string('topic') . ' ' . $sectioninfo->section;
+        foreach ($modinfo->get_section_info_all() as $sectioninfo) {
+            $name = $sectioninfo->name;
+            if ($name == null) {
+                $name = get_string('topic') . ' ' . $sectioninfo->section;
+            }
+            $sections[] = $name;
+            $sectionids[] = $sectioninfo->id;
         }
-        $sections[] = $name;
-        $sectionids[] = $sectioninfo->id;
-    }
-    return array($sectionids, $sections);
-}
-
-public
-static function get_gradecategories_in_course_for_select($courseid) {
-    global $CFG;
-    require $CFG->libdir . '/gradelib.php';
-
-    $gradecats = grade_get_categories_menu($courseid);
-    return array(array_keys($gradecats), array_values($gradecats));
-}
-
-/**
- * @param $courseid
- * @param $coursecontext
- * @param $roles
- * @param $mindate
- * @param $maxdate
- * @param $uniqueusers
- * @return array
- * @throws \coding_exception
- * @throws \dml_exception
- */
-public
-static function get_data_from_course($courseid, $coursecontext, $roles, $sections, $gradecats,
-        $mindate, $maxdate, $uniqueusers = false) {
-    global $DB;
-
-    $params = [];
-
-    if ($uniqueusers) {
-        $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, COUNT(amount) AS amount
-                FROM {logstore_usage_log} ul ";
-    } else {
-        $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
-                FROM {logstore_usage_log} ul ";
-
+        return array($sectionids, $sections);
     }
 
-    if ($roles != null && count($roles) != 0) {
-        list($conlist, $conparams) =
-                $DB->get_in_or_equal($coursecontext->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'con');
+    public static function get_gradecategories_in_course_for_select($courseid) {
+        global $CFG;
+        require_once $CFG->libdir . '/gradelib.php';
 
-        $sql .= "INNER JOIN (
+        $gradecats = grade_get_categories_menu($courseid);
+        return array(array_keys($gradecats), array_values($gradecats));
+    }
+
+    /**
+     * @param $courseid
+     * @param $coursecontext
+     * @param $roles
+     * @param $mindate
+     * @param $maxdate
+     * @param $uniqueusers
+     * @return array
+     * @throws \coding_exception
+     * @throws \dml_exception
+     */
+    public static function get_data_from_course($courseid, $coursecontext, $roles, $sections, $gradecats,
+            $mindate, $maxdate, $uniqueusers = false) {
+        global $DB;
+
+        $params = [];
+
+        if ($uniqueusers) {
+            $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, COUNT(amount) AS amount
+                FROM {logstore_usage_log} ul ";
+        } else {
+            $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
+                FROM {logstore_usage_log} ul ";
+
+        }
+
+        if ($roles != null && count($roles) != 0) {
+            list($conlist, $conparams) =
+                    $DB->get_in_or_equal($coursecontext->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'con');
+
+            $sql .= "INNER JOIN (
                     SELECT userid, MIN(roleid) as roleid
                     FROM  {role_assignments}
                     WHERE contextid $conlist
@@ -157,105 +154,107 @@ static function get_data_from_course($courseid, $coursecontext, $roles, $section
                   ) r
                     ON ul.userid = r.userid ";
 
-        $params = array_merge($params, $conparams);
-    }
-    $sql .= "WHERE courseid = :courseid
+            $params = array_merge($params, $conparams);
+        }
+        $sql .= "WHERE courseid = :courseid
                   AND yearcreated * 10000 + monthcreated * 100 + daycreated >= :mindate
                   AND yearcreated * 10000 + monthcreated * 100 + daycreated <= :maxdate ";
 
-    if ($roles != null && count($roles) != 0) {
-        list($rolelist, $roleparams) = $DB->get_in_or_equal($roles, SQL_PARAMS_NAMED, 'role');
-        $sql .= "AND r.roleid $rolelist";
+        if ($roles != null && count($roles) != 0) {
+            list($rolelist, $roleparams) = $DB->get_in_or_equal($roles, SQL_PARAMS_NAMED, 'role');
+            $sql .= "AND r.roleid $rolelist";
 
-        $params = array_merge($params, $roleparams);
-    }
+            $params = array_merge($params, $roleparams);
+        }
 
-    if ($gradecats != null && count($gradecats) != 0) {
-        list($gradecatlist, $gradecatparams) = $DB->get_in_or_equal($gradecats, SQL_PARAMS_NAMED, 'gradecat');
-        new \grade_category(array('id' => 1)); // TODO
-    }
+        if ($gradecats != null && count($gradecats) != 0) {
+            $gradecatcontextids = self::get_mods_in_gradecategories($gradecats);
+            list($gradecatlist, $gradecatparams) = $DB->get_in_or_equal($gradecatcontextids, SQL_PARAMS_NAMED, 'gradecat');
+            $sql .= "AND ul.contextid $gradecatlist";
 
-    $mods = self::get_mods_in_sections($sections, $courseid);
-    if (count($mods) == 0) {
-        // No results when filtering for empty section.
-        return array();
-    }
+            $params = array_merge($params, $gradecatparams);
+        }
 
-    list($modlist, $modparams) = $DB->get_in_or_equal($mods, SQL_PARAMS_NAMED, 'mod');
-    $sql .= "AND ul.contextid $modlist ";
-    $params = array_merge($params, $modparams);
+        $mods = self::get_mods_in_sections($sections, $courseid);
+        if (count($mods) == 0) {
+            // No results when filtering for empty section.
+            return array();
+        }
 
-    $sql .= "GROUP BY ul.contextid, yearcreated, monthcreated, daycreated
+        list($modlist, $modparams) = $DB->get_in_or_equal($mods, SQL_PARAMS_NAMED, 'mod');
+        $sql .= "AND ul.contextid $modlist ";
+        $params = array_merge($params, $modparams);
+
+        $sql .= "GROUP BY ul.contextid, yearcreated, monthcreated, daycreated
                 ORDER BY ul.contextid, yearcreated, monthcreated, daycreated ";
 
-    $params = array_merge($params, array(
-            'courseid' => $courseid,
-            'coursecontextid' => $coursecontext->id,
-            'mindate' => $mindate,
-            'maxdate' => $maxdate
-    ));
-    return $DB->get_records_sql($sql, $params);
-}
+        $params = array_merge($params, array(
+                'courseid' => $courseid,
+                'coursecontextid' => $coursecontext->id,
+                'mindate' => $mindate,
+                'maxdate' => $maxdate
+        ));
+        return $DB->get_records_sql($sql, $params);
+    }
 
-public
-static function get_processed_data_from_course($courseid, $coursecontextid, $roles, $sections, $gradecats, $mindatestamp,
-        $maxdatestamp, $uniqueusers = false) {
-    $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
-    $startdate->setTimestamp($mindatestamp);
+    public static function get_processed_data_from_course($courseid, $coursecontextid, $roles, $sections,
+            $gradecats, $mindatestamp, $maxdatestamp, $uniqueusers = false) {
+        $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
+        $startdate->setTimestamp($mindatestamp);
 
-    $enddate = new \DateTime("now", \core_date::get_server_timezone_object());
-    $enddate->setTimestamp($maxdatestamp);
+        $enddate = new \DateTime("now", \core_date::get_server_timezone_object());
+        $enddate->setTimestamp($maxdatestamp);
 
-    $days = intval($startdate->diff($enddate)->format('%a'));
+        $days = intval($startdate->diff($enddate)->format('%a'));
 
-    $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections, $gradecats,
-            $startdate->format("Ymd"), $enddate->format("Ymd"), $uniqueusers);
-    $modinfo = get_fast_modinfo($courseid, -1);
+        $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections, $gradecats,
+                $startdate->format("Ymd"), $enddate->format("Ymd"), $uniqueusers);
+        $modinfo = get_fast_modinfo($courseid, -1);
 
-    $data = [];
-    $deletedids = [];
+        $data = [];
+        $deletedids = [];
 
-    // Create table from records.
-    foreach ($records as $v) {
-        if (in_array($v->contextid, $deletedids)) {
-            continue;
-        }
-
-        if (!isset($data[$v->contextid])) {
-            $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
-            if (!$context) {
-                $deletedids[] = $v->contextid;
+        // Create table from records.
+        foreach ($records as $v) {
+            if (in_array($v->contextid, $deletedids)) {
                 continue;
             }
-            // Also delete contexts that have no associated course module anymore.
-            // Probably a bug, but this has happened with mod_hvp.
-            try {
-                $modinfo->get_cm($context->instanceid);
-            } catch (\moodle_exception $e) {
-                $deletedids[] = $v->contextid;
-                continue;
+
+            if (!isset($data[$v->contextid])) {
+                $context = \context::instance_by_id($v->contextid, IGNORE_MISSING);
+                if (!$context) {
+                    $deletedids[] = $v->contextid;
+                    continue;
+                }
+                // Also delete contexts that have no associated course module anymore.
+                // Probably a bug, but this has happened with mod_hvp.
+                try {
+                    $modinfo->get_cm($context->instanceid);
+                } catch (\moodle_exception $e) {
+                    $deletedids[] = $v->contextid;
+                    continue;
+                }
+                $data[$v->contextid] = [];
             }
-            $data[$v->contextid] = [];
+
+            $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
+            $datediff = intval($diff->diff($startdate, true)->format("%a"));
+            $data[$v->contextid][$datediff] = $v->amount;
         }
 
-        $diff = new \DateTime("$v->daycreated-$v->monthcreated-$v->yearcreated");
-        $datediff = intval($diff->diff($startdate, true)->format("%a"));
-        $data[$v->contextid][$datediff] = $v->amount;
-    }
-
-    // Fill empty cells with 0.
-    for ($i = 0; $i <= $days; $i++) {
-        foreach ($data as $k => $v) {
-            if (!isset($data[$k][$i])) {
-                $data[$k][$i] = 0;
+        // Fill empty cells with 0.
+        for ($i = 0; $i <= $days; $i++) {
+            foreach ($data as $k => $v) {
+                if (!isset($data[$k][$i])) {
+                    $data[$k][$i] = 0;
+                }
             }
         }
-    }
 
-    foreach ($data as &$row) {
-        ksort($row);
+        foreach ($data as &$row) {
+            ksort($row);
+        }
+        return $data;
     }
-    return $data;
-}
 
 }

@@ -67,6 +67,12 @@ class filter_form extends \moodleform {
         $mform->setType('sections', PARAM_SEQUENCE);
         $mform->setDefault('sections', array_keys($this->_customdata['sections']));
 
+        $gradecatselect = $mform->addElement('select', 'gc', get_string('gradecats', 'report_usage'),
+            $this->_customdata['gc']);
+        $gradecatselect->setMultiple(true);
+        $mform->setType('gc', PARAM_SEQUENCE);
+        $mform->setDefault('gc', array_keys($this->_customdata['gc']));
+
         $mform->addElement('checkbox', 'uniqueusers', get_string('uniqueusers', 'report_usage'));
 
         // Add the filter/cancel buttons (without 'closeHeaderBefore', so they collapse with the filter).
