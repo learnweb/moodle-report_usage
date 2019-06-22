@@ -110,7 +110,7 @@ class db_helper {
 
     public static function get_gradecategories_in_course_for_select($courseid) {
         global $CFG;
-        require_once $CFG->libdir . '/gradelib.php';
+        require_once($CFG->libdir . '/gradelib.php');
 
         $gradecats = grade_get_categories_menu($courseid);
         return array(array_keys($gradecats), array_values($gradecats));
