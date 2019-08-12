@@ -21,5 +21,6 @@ $string['error_periodtoolong'] = 'The selected period has to be shorter than 1 y
 $string['roles'] = 'Roles';
 $string['sections'] = 'Sections';
 $string['section'] = 'Section';
+$string['gradecats'] = 'Grade Categories';
 $string['no-data'] = 'There is no data for the selected filters';
 $string['uniqueusers'] = 'Only count unique users';

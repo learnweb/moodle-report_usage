@@ -74,6 +74,23 @@ class db_helper {
 
     }
 
+    public static function get_mods_in_gradecategories($gradecatids) {
+        global $DB;
+        list($gradecatlist, $params) = $DB->get_in_or_equal($gradecatids, SQL_PARAMS_NAMED);
+        $sql = "SELECT con.id
+                FROM {grade_items} gi
+                         JOIN {modules} m
+                              ON gi.itemmodule = m.name
+                         JOIN {course_modules} cm
+                              ON cm.module = m.id AND cm.instance = gi.iteminstance
+                         JOIN {context} con
+                              ON con.instanceid = cm.id
+                WHERE gi.categoryid $gradecatlist
+                  AND con.contextlevel = 70";
+
+        return array_keys($DB->get_records_sql($sql, $params));
+    }
+
     public static function get_sections_in_course_for_select($courseid) {
         $modinfo = get_fast_modinfo($courseid);
 
@@ -91,6 +108,14 @@ class db_helper {
         return array($sectionids, $sections);
     }
 
+    public static function get_gradecategories_in_course_for_select($courseid) {
+        global $CFG;
+        require_once($CFG->libdir . '/gradelib.php');
+
+        $gradecats = grade_get_categories_menu($courseid);
+        return array(array_keys($gradecats), array_values($gradecats));
+    }
+
     /**
      * @param $courseid
      * @param $coursecontext
@@ -102,8 +127,8 @@ class db_helper {
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function get_data_from_course($courseid, $coursecontext, $roles, $sections,
-                                                $mindate, $maxdate, $uniqueusers = false) {
+    public static function get_data_from_course($courseid, $coursecontext, $roles, $sections, $gradecats,
+            $mindate, $maxdate, $uniqueusers = false) {
         global $DB;
 
         $params = [];
@@ -142,6 +167,14 @@ class db_helper {
             $params = array_merge($params, $roleparams);
         }
 
+        if ($gradecats != null && count($gradecats) != 0) {
+            $gradecatcontextids = self::get_mods_in_gradecategories($gradecats);
+            list($gradecatlist, $gradecatparams) = $DB->get_in_or_equal($gradecatcontextids, SQL_PARAMS_NAMED, 'gradecat');
+            $sql .= "AND ul.contextid $gradecatlist";
+
+            $params = array_merge($params, $gradecatparams);
+        }
+
         $mods = self::get_mods_in_sections($sections, $courseid);
         if (count($mods) == 0) {
             // No results when filtering for empty section.
@@ -164,8 +197,8 @@ class db_helper {
         return $DB->get_records_sql($sql, $params);
     }
 
-    public static function get_processed_data_from_course($courseid, $coursecontextid, $roles, $sections, $mindatestamp,
-            $maxdatestamp, $uniqueusers = false) {
+    public static function get_processed_data_from_course($courseid, $coursecontextid, $roles, $sections,
+            $gradecats, $mindatestamp, $maxdatestamp, $uniqueusers = false) {
         $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
         $startdate->setTimestamp($mindatestamp);
 
@@ -174,7 +207,7 @@ class db_helper {
 
         $days = intval($startdate->diff($enddate)->format('%a'));
 
-        $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections,
+        $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections, $gradecats,
                 $startdate->format("Ymd"), $enddate->format("Ymd"), $uniqueusers);
         $modinfo = get_fast_modinfo($courseid, -1);
 
