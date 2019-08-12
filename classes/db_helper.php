@@ -97,17 +97,25 @@ class db_helper {
      * @param $roles
      * @param $mindate
      * @param $maxdate
+     * @param $uniqueusers
      * @return array
      * @throws \coding_exception
      * @throws \dml_exception
      */
-    public static function get_data_from_course($courseid, $coursecontext, $roles, $sections, $mindate, $maxdate) {
+    public static function get_data_from_course($courseid, $coursecontext, $roles, $sections,
+                                                $mindate, $maxdate, $uniqueusers = false) {
         global $DB;
 
         $params = [];
 
-        $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
+        if ($uniqueusers) {
+            $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, COUNT(amount) AS amount
                 FROM {logstore_usage_log} ul ";
+        } else {
+            $sql = "SELECT MIN(ul.id) AS id, ul.contextid, yearcreated, monthcreated, daycreated, SUM(amount) AS amount
+                FROM {logstore_usage_log} ul ";
+
+        }
 
         if ($roles != null && count($roles) != 0) {
             list($conlist, $conparams) =
@@ -157,7 +165,7 @@ class db_helper {
     }
 
     public static function get_processed_data_from_course($courseid, $coursecontextid, $roles, $sections, $mindatestamp,
-            $maxdatestamp) {
+            $maxdatestamp, $uniqueusers = false) {
         $startdate = new \DateTime("now", \core_date::get_server_timezone_object());
         $startdate->setTimestamp($mindatestamp);
 
@@ -167,7 +175,7 @@ class db_helper {
         $days = intval($startdate->diff($enddate)->format('%a'));
 
         $records = self::get_data_from_course($courseid, $coursecontextid, $roles, $sections,
-                $startdate->format("Ymd"), $enddate->format("Ymd"));
+                $startdate->format("Ymd"), $enddate->format("Ymd"), $uniqueusers);
         $modinfo = get_fast_modinfo($courseid, -1);
 
         $data = [];

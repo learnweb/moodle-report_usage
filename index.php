@@ -29,6 +29,7 @@ require_once(__DIR__ . '/lib.php');
 $id = required_param('id', PARAM_INT); // Course ID.
 $tab = optional_param('tab', 'table-tab', PARAM_ALPHANUMEXT);
 $logformat = optional_param('download', '', PARAM_ALPHA);
+$uniqueusers = (bool) optional_param('uniqueusers', false, PARAM_BOOL);
 $startdate = optional_param_array('startdate', null, PARAM_INT);
 $enddate = optional_param_array('enddate', null, PARAM_INT);
 $roles = optional_param_array('roles', null, PARAM_INT);
@@ -116,7 +117,8 @@ if ($sections != null && count($sections) !== 0 && count($sections) !== count($s
     }
 }
 
-$data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles, $selectedsections, $start, $end);
+$data = \report_usage\db_helper::get_processed_data_from_course($id, $context, $selectedroles,
+            $selectedsections, $start, $end, $uniqueusers);
 
 $table = new \report_usage\table\report_usage_table($id, $start, $end, $data, $logformat !== '');
 

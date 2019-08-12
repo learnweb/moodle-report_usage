@@ -67,6 +67,8 @@ class filter_form extends \moodleform {
         $mform->setType('sections', PARAM_SEQUENCE);
         $mform->setDefault('sections', array_keys($this->_customdata['sections']));
 
+        $mform->addElement('checkbox', 'uniqueusers', get_string('uniqueusers', 'report_usage'));
+
         // Add the filter/cancel buttons (without 'closeHeaderBefore', so they collapse with the filter).
         $buttonarray = [
             $mform->createElement('submit', 'submitbutton', get_string('filter')),
