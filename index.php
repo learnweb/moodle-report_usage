@@ -143,6 +143,7 @@ if ($logformat !== '') {
     $table->is_downloading($logformat, 'name');
     $table->setup();
     $table->init_data();
+    $table->finish_output();
     die();
 }
 
