@@ -24,3 +24,4 @@ $string['section'] = 'Section';
 $string['gradecats'] = 'Grade Categories';
 $string['no-data'] = 'There is no data for the selected filters';
 $string['uniqueusers'] = 'Only count unique users';
+$string['usage:view'] = 'View course activity analysis report';
