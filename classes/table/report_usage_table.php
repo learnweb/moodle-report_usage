@@ -128,7 +128,7 @@ class report_usage_table extends \flexible_table {
                 if (!$this->is_downloading()) {
                     $moddata[] = "<div style='background-color: $color; padding: .5rem'>$amount</div>";
                 } else {
-                    $moddata[] = $amount;
+                    $moddata[] = intval($amount);
                 }
             }
             if (!isset($databysection[$section])) {
