@@ -79,6 +79,9 @@ if ($sections && !empty($sections)) {
 if ($gradecats && !empty($gradecats)) {
     $params = array_merge($params, util::make_array_params('gc', $gradecats));
 }
+if ($uniqueusers) {
+    $params['uniqueusers'] = 1;
+}
 
 require_capability('report/usage:view', $context);
 
