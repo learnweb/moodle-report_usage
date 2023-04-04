@@ -25,10 +25,8 @@ $users = get_role_users(5, $context);
 $csvexportwriter = new csv_export_writer();
 $csvexportwriter->set_filename('course'.$id.'-gradestatistics');
 
-//for each user: username + user id
 foreach ($users as $u) {
 
-    //for each activity: activityname () -> Anzahl und datum
     foreach ($activities as $a){
 
         $cm = get_coursemodule_from_instance($a->mod, $a->id, $id);
@@ -39,21 +37,18 @@ foreach ($users as $u) {
               WHERE contextid=$actcontext->id AND userid=$u->id AND courseid=$id";
 
         foreach ($DB->get_records_sql($sql) as $rec) {
-
-            $date = date_create($rec->daycreated.'-'.$rec->monthcreated.'-'.$rec->yearcreated);
+                
+            $date = $rec->daycreated.'-'.$rec->monthcreated.'-'.$rec->yearcreated;
             $row = array(
-                'id' => $rec->id,
                 'username' => $u->username,
                 'userid' => $rec->userid,
                 'activityname' => $a->name,
                 'amount' => $rec->amount,
-                'date' => $date->format('d-m-Y')
+                'date' => $date
             );
-
+            $csvexportwriter->add_data($row);
         }
-        $csvexportwriter->add_data($row);
     }
-
 }
 
 $csvexportwriter->download_file();
